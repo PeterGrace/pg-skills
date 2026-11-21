@@ -126,7 +126,8 @@ to ask you unless something fails.
    link on the issue.
 
 When it finishes you have a PR number. Open it with `gh pr view 2 --web` (use your number)
-and look at the Summary, the Validation section and the Claims table.
+and look at the Summary, the Validation section and the Claims table. To read that
+table, see [Validate a change](/pg-skills/how-to/validate-a-change/#read-the-verdicts).
 
 ## 5. Review the PR
 

@@ -68,6 +68,8 @@ still open, Opus takes over the PR.
 
 ## Related
 
+- [Validate a change](/pg-skills/how-to/validate-a-change/) says how to read the Claims
+  table in the PR body, which the reviewer checks against the diff.
 - [Execute an epic](/pg-skills/how-to/execute-an-epic/) says who runs this for you
   in an epic.
 - A worked review round: [PR #18](https://github.com/PeterGrace/pg-skills/pull/18),
