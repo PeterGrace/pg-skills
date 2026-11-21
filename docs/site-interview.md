@@ -142,6 +142,36 @@ review, such as undocumented divergences and acceptance criteria with no test.
 
 ## 3. Backlog burndown
 
+### How does an issue earn the `accepted` label?
+
+**Answer:** "Sometimes I make an issue, sometimes an agent makes an issue, either way I
+read, groom if needed, then apply the label."
+
+**Notes:** the label is Peter's decision, whoever filed the issue. Filers include Peter,
+implementers and Brooke follow-ups. Peter grooms (`github-groom-issue`) only when an
+issue is too vague to implement unattended.
+
+### When do I run a burndown?
+
+**Answer:** during unattended stretches, and when the backlog piles up.
+
+**Notes:** the burndown runs one issue at a time and stops on anything hard. Not
+chosen: between milestones, and alongside an epic.
+
+### What happens to a `burndown-blocked` issue?
+
+**Answer:** "I usually ask claude in a separate session to work interactively with me
+on the issue so we can get it either fixed for resume, or pushed manually."
+
+**Notes:** a blocked issue goes to a hands-on session. That session either fixes it
+so the burndown can pick it up again, or finishes and pushes it directly. The skills
+stop at the label, so the site's burndown how-to should add this step.
+
+### Should follow-ups the burndown files wait for me?
+
+**Answer:** yes, keep them waiting. Nothing enters the queue until Peter has read it.
+Otherwise the burndown would feed itself.
+
 ## 4. Validating with claims-mcp
 
 ## 5. Study guides
