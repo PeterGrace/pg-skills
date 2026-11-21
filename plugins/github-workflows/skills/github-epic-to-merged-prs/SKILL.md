@@ -298,8 +298,8 @@ After the last sub-issue merges into `<M>`:
    green on its head and `mergeStateStatus` `CLEAN`. Request a review only if
    the project's reviewer is wanted on milestone PRs, or the sync merges
    needed conflict resolution; the pieces were reviewed already.
-   **Keep closing keywords out of the body.** `close`, `closes`, `fix`, `fixes`,
-   `resolve` and `resolves` followed by an issue number close that issue when the PR
+   **Keep closing keywords out of the body.** `close`, `closes`, `closed`, `fix`, `fixes`,
+   `fixed`, `resolve`, `resolves` and `resolved` followed by an issue number close that issue when the PR
    merges into `main`, and negation doesn't stop it: "doesn't close #3" still closes
    #3 (PR #25 closed epic #3 before the final audit ran). Write "The epic stays open
    until the post-merge audit" and refer to issues as "epic #3" or "sub-issue #12".
