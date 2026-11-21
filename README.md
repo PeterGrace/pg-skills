@@ -123,9 +123,13 @@ ask it to add a skill.
 ## The documentation site
 
 ```
-just site-dev     # preview at http://localhost:4321/pg-skills/
-just site-build   # what CI runs: generate the reference, build, check every link
+(cd site && npm ci)   # once per checkout: install the site's dependencies (needs Node and npm)
+just site-dev         # preview at http://localhost:4321/pg-skills/
+just site-build       # what CI runs: install, generate the reference, build, check every link
 ```
+
+`just site-dev` doesn't install dependencies; `just site-build` does (`npm ci`), so
+running it once also works.
 
 The reference pages are written by `tools/skills.py reference` from `catalog.yaml`,
 each `SKILL.md`, each plugin's `agents/` and `GLOSSARY.md`, so they never need a
