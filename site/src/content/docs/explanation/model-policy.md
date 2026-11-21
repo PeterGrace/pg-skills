@@ -89,7 +89,18 @@ policy's one-paragraph version. For why the audit exists at all, see
 ## An observation, not a reason
 
 Epic [#3](https://github.com/PeterGrace/pg-skills/issues/3), this site's first
-milestone, escalated zero times. I record that as what happened on one epic. It isn't
+milestone, escalated zero times. Every commit on its ten PRs
+([#13](https://github.com/PeterGrace/pg-skills/pull/13),
+[#14](https://github.com/PeterGrace/pg-skills/pull/14),
+[#15](https://github.com/PeterGrace/pg-skills/pull/15),
+[#16](https://github.com/PeterGrace/pg-skills/pull/16),
+[#18](https://github.com/PeterGrace/pg-skills/pull/18),
+[#21](https://github.com/PeterGrace/pg-skills/pull/21),
+[#22](https://github.com/PeterGrace/pg-skills/pull/22),
+[#23](https://github.com/PeterGrace/pg-skills/pull/23),
+[#24](https://github.com/PeterGrace/pg-skills/pull/24) and
+[#27](https://github.com/PeterGrace/pg-skills/pull/27)) carries a
+`Co-Authored-By: Claude Sonnet` trailer. I record that as what happened on one epic. It isn't
 why I chose the policy, and one epic is too few to say how often a trigger fires.
 
 ## How I check the policy

@@ -69,13 +69,8 @@ Three things in the skills are specific to Brooke.
      `brooke-reviews[bot]` in a rule that her comments must not be filtered out of the
      walk, and the burndown skill's description names her.
 
-If you have no bot, you can run without the scripts. The glossary's line is to review
-the PRs yourself where the skills wait for Brooke. In the epic skill, the review
-watcher in step 4 waits for a review whose login starts with the reviewer name you give
-it, so give it your own login and post your review on the PR. `github-issue-burndown` is harder to run that way, since its
-scripts decide when a PR may merge. Use `github-epic-to-merged-prs`, or run
-`github-issue-to-pr` and `github-address-pr-review` on single issues, as in the
-[tutorial](/pg-skills/tutorials/first-issue-to-merged-pr/).
+The skills assume a reviewer that posts PR reviews. A human reviewer works if the
+watchers match that person's login. Beyond the list above, I don't prescribe more.
 
 ## Replace the gates
 
@@ -149,7 +144,7 @@ Differences from the GitHub skills:
   through the `forgejo` MCP tools, and parse the host, owner and repo from your
   git remote.
 - **`forgejo-address-pr-review` names Brooke.** It has a rule never to filter
-  `brooke-reviews[bot]` out of the walk. Change the name to your bot, or drop the rule.
+  `brooke-reviews[bot]` out of the walk. Change the name to your bot.
 
 `forgejo-issue-to-pr` also needs [just](/pg-skills/reference/dependencies/#just) and
 [claims-audit](/pg-skills/reference/dependencies/#claims-audit), and can use
