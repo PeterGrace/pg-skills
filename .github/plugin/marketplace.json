@@ -56,6 +56,23 @@
       ]
     },
     {
+      "name": "usage-analysis",
+      "source": "./plugins/usage-analysis",
+      "description": "Skills for working out where Claude Code token usage goes, from local session transcripts: by model, token type, session and subagent type, with the fixes that cut it.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Peter Grace"
+      },
+      "category": "Developer Tools",
+      "keywords": [
+        "usage",
+        "tokens",
+        "cost",
+        "subagents",
+        "limits"
+      ]
+    },
+    {
       "name": "study-guides",
       "source": "./plugins/study-guides",
       "description": "Skills for writing grounded study documentation for a codebase (architecture overview, module deep dives, glossary, flashcards), fact-checking it against the code, and reconciling the fact-check back into the docs.",

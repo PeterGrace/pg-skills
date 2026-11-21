@@ -37,6 +37,7 @@ one and what to change to adapt it.
 | `forgejo-workflows` | The same planning, grooming and issue-to-PR workflows on Forgejo, through forgejo-mcp. Its subagent fan-out needs `github-workflows` installed too, for `issue-implementer`. |
 | `study-guides` | Write study docs for a codebase, fact-check them against the code, and reconcile the fact-check back in. |
 | `skill-authoring` | How to add or change a skill in this repository. |
+| `usage-analysis` | Work out where Claude Code token usage went, from local transcripts, and what to change. |
 
 The examples below install `skill-authoring`; substitute any plugin name.
 
