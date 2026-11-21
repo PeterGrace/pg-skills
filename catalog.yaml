@@ -15,7 +15,7 @@ plugins:
   # Each plugin's skills live in plugins/<name>/skills/<skill>/.
   - name: skill-authoring
     description: "Skills for writing and maintaining the agent skills in this repository."
-    version: 0.1.1
+    version: 0.1.2
     category: Developer Tools
     keywords: [skills, authoring]
     skills:

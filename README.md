@@ -6,6 +6,9 @@ Code, Claude apps, GitHub Copilot CLI, OpenAI Codex, Cursor and Gemini CLI.
 Skills follow the [Agent Skills spec](https://agentskills.io/specification). The
 tooling is one self-contained script, `tools/skills.py`, run through `just` and `uv`.
 
+**Documentation:** <https://petergrace.github.io/pg-skills/>, with how I use these
+skills and a reference page for every plugin, skill and agent.
+
 ## What's here
 
 | Path | What it is | Edit by hand? |
@@ -15,6 +18,7 @@ tooling is one self-contained script, `tools/skills.py`, run through `just` and 
 | `plugins/<plugin>/agents/` | Claude Code subagents the plugin ships (found automatically; named `<plugin>:<agent>`) | yes |
 | `GLOSSARY.md` | The personal names and conventions the skills use, and how to adapt them | yes |
 | `tools/skills.py` | Validates the catalog and skills, and generates the manifests | yes |
+| `site/` | The documentation site (Astro Starlight); its reference section is generated | yes, except `site/src/content/docs/reference/` |
 | `tests/` | Tests for the tool, and for skill scripts in `tests/skill_scripts/` (kept out of the skills so they aren't shipped) | yes |
 | `.claude-plugin/`, `.github/plugin/`, `.agents/plugins/`, `.cursor-plugin/` | Vendor marketplace files | **no, generated** |
 | `plugins/<plugin>/plugin.json`, `plugins/<plugin>/gemini-extension.json` | Per-plugin manifests | **no, generated** |
@@ -115,6 +119,18 @@ ask it to add a skill.
 
 6. **Commit the skill and the generated files together**, and push to `main` (or merge
    a pull request once CI is green).
+
+## The documentation site
+
+```
+just site-dev     # preview at http://localhost:4321/pg-skills/
+just site-build   # what CI runs: generate the reference, build, check every link
+```
+
+The reference pages are written by `tools/skills.py reference` from `catalog.yaml`,
+each `SKILL.md`, each plugin's `agents/` and `GLOSSARY.md`, so they never need a
+hand edit. Pushes to `main` that touch the site, the skills or the tooling redeploy
+it. Changes only under `site/` or `docs/` don't cut a release.
 
 ## Releases
 
