@@ -23,6 +23,11 @@
       "description": "Issue-to-PR workflows on Forgejo through the forgejo-mcp server: planning features into issues, grooming and splitting issues, implementing an issue as a pull request, and walking through review comments. Its subagent fan-out uses the issue-implementer agent from github-workflows."
     },
     {
+      "name": "usage-analysis",
+      "source": "./plugins/usage-analysis",
+      "description": "Skills for working out where Claude Code token usage goes, from local session transcripts: by model, token type, session and subagent type, with the fixes that cut it."
+    },
+    {
       "name": "study-guides",
       "source": "./plugins/study-guides",
       "description": "Skills for writing grounded study documentation for a codebase (architecture overview, module deep dives, glossary, flashcards), fact-checking it against the code, and reconciling the fact-check back into the docs."

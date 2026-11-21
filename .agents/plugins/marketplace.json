@@ -38,6 +38,18 @@
       "category": "Developer Tools"
     },
     {
+      "name": "usage-analysis",
+      "source": {
+        "source": "local",
+        "path": "./plugins/usage-analysis"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
       "name": "study-guides",
       "source": {
         "source": "local",
