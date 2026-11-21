@@ -136,7 +136,7 @@ and checking the live site are not tasks: see **Shipping the milestone (coordina
 **Files:**
 - Modify: `GLOSSARY.md`
 
-- [ ] **Step 1: Convert the entries**
+- [x] **Step 1: Convert the entries**
 
 Run this from the repo root (the script is written to an untracked scratch file, not committed):
 
@@ -161,7 +161,7 @@ EOF
 python3 -I target/glossary_fix.py GLOSSARY.md
 ```
 
-- [ ] **Step 2: Check the result**
+- [x] **Step 2: Check the result**
 
 Run: `grep -c '^### ' GLOSSARY.md; grep -c '^: ' GLOSSARY.md; sed -n '1,25p' GLOSSARY.md`
 Expected: `13` headings, `0` definition lines
@@ -178,7 +178,7 @@ reviewer, named after my cat. ...
 **Adapt:** put your reviewer's login in the scripts' `bot=` line and your bot's
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add GLOSSARY.md
@@ -193,7 +193,7 @@ git commit -m "docs: use headings in the glossary so GitHub renders it"
 - Modify: `tools/skills.py`
 - Test: `tests/test_skills_tool.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_skills_tool.py`, before the `if __name__ == "__main__":` line:
 
@@ -250,12 +250,12 @@ class ReferenceTest(RepoTestCase):
 
 `test_writes_one_page_per_skill` pins only the skill pages, which is all this task produces. Task 3 replaces it with a test for the full page set, so every task's PR passes `just check` on its own.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `just test`
 Expected: FAIL with `AttributeError: module 'skills_tool' has no attribute 'reference_pages'` (and the same for `GENERATED_NOTE`).
 
-- [ ] **Step 3: Implement the helpers and skill pages**
+- [x] **Step 3: Implement the helpers and skill pages**
 
 In `tools/skills.py`, add `import html` to the imports (keeping it alphabetical). Add this constant next to `SKILL_FILE`:
 
@@ -366,12 +366,12 @@ def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str,
 
 > **Corrected (issue #7, 2026-11-21, review round 1).** `agent_page` above now rejects an agent `name` that fails `name_problem()`, because the name becomes a path under `agents/`. Its test is `test_agent_name_cannot_escape_the_output_directory`, added in Task 4.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `just test`
 Expected: `OK`, with every `ReferenceTest` test passing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/skills.py tests/test_skills_tool.py
@@ -386,7 +386,7 @@ git commit -m "feat(tools): generate reference pages for skills"
 - Modify: `tools/skills.py`
 - Test: `tests/test_skills_tool.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 In `ReferenceTest`, replace Task 2's `test_writes_one_page_per_skill` with a test for
 the full page set, now that plugin pages exist:
@@ -459,12 +459,12 @@ Then add these methods:
         self.assertIn("Intro.\n\n### Brooke\n\nA bot.", text)
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `just test`
 Expected: FAIL with `KeyError: 'plugins/release-tools.md'`, `KeyError: 'agents/helper.md'` and `KeyError: 'glossary.md'`, and an `AssertionError` from `test_writes_one_page_per_plugin_and_skill`, whose list now includes the plugin pages.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `tools/skills.py`, add these functions above `reference_pages`:
 
@@ -619,12 +619,12 @@ Then replace the body of `reference_pages` with:
     return dict(sorted(pages.items()))
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `just test`
 Expected: `OK`, with every `ReferenceTest` test passing, including `test_writes_one_page_per_plugin_and_skill`, which replaced Task 2's skills-only test.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/skills.py tests/test_skills_tool.py
@@ -639,7 +639,7 @@ git commit -m "feat(tools): generate plugin, agent and glossary reference pages"
 - Modify: `tools/skills.py`
 - Test: `tests/test_skills_tool.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `ReferenceTest`:
 
@@ -670,12 +670,12 @@ Add to `ReferenceTest`:
         self.assertTrue((out / "skills/semver-bump.md").is_file())
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `just test`
 Expected: FAIL with `AttributeError: ... no attribute 'write_reference'` and, for `test_main_reference`, an argparse error (exit 2: `invalid choice: 'reference'`).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Add `import shutil` to the imports (after `import re`), then add after `reference_pages` in `tools/skills.py`:
 
@@ -739,7 +739,7 @@ Also update the module docstring's usage block with one line:
     uv run --script tools/skills.py reference --out DIR --repo OWNER/NAME --url-prefix PATH
 ```
 
-- [ ] **Step 4: Run the full check**
+- [x] **Step 4: Run the full check**
 
 Run: `just check`
 Expected: validation `ok`, generated files current, mypy prints nothing, and the tests end `OK` (40 tests).
@@ -750,14 +750,14 @@ Expected: validation `ok`, generated files current, mypy prints nothing, and the
 
 > **Corrected (issue #7, 2026-11-21, review round 2).** `write_reference` now writes the `.generated` marker right after recreating `out`, before any page. Otherwise a page write that failed after the old output was deleted left a directory with no marker, and every retry refused it as foreign. The Task 4 code block above is updated.
 
-- [ ] **Step 5: Try it on the real repo**
+- [x] **Step 5: Try it on the real repo**
 
 Run: `uv run --quiet --script tools/skills.py reference --out /tmp/pgref --repo PeterGrace/pg-skills --url-prefix /pg-skills/reference && ls -R /tmp/pgref | head -40 && sed -n '1,30p' /tmp/pgref/agents/issue-implementer.md`
 Expected: `wrote 24 reference pages` (4 plugins, 18 skills, 1 agent, 1 glossary), files under `plugins/`, `skills/`, `agents/`, and an agent page whose table says ``| Subagent type | `github-workflows:issue-implementer` |``. Then `rm -r /tmp/pgref`.
 
 > **Corrected (issue #7, 2026-11-21).** Write the trial output under the worktree's ignored `target/` rather than `/tmp`, never into `site/`. If the count differs, check that every catalog skill has a page before going on.
 
-- [ ] **Step 6: Correct the spec**
+- [x] **Step 6: Correct the spec**
 
 In `docs/superpowers/specs/2026-11-21-workflow-site-design.md`, the generated pages
 moved (see "Simplifications and deviations" above):
@@ -774,7 +774,7 @@ moved (see "Simplifications and deviations" above):
 Run: `grep -n 'generated/' docs/superpowers/specs/2026-11-21-workflow-site-design.md`
 Expected: no output.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tools/skills.py tests/test_skills_tool.py docs/superpowers/specs/2026-11-21-workflow-site-design.md
@@ -789,7 +789,7 @@ git commit -m "feat(tools): add the reference command for the docs site"
 - Create: `site/package.json`, `site/package-lock.json`, `site/astro.config.mjs`, `site/src/content.config.ts`, `site/tsconfig.json`, `site/src/content/docs/index.mdx`
 - Modify: `.gitignore`, `justfile`
 
-- [ ] **Step 1: Create `site/package.json`**
+- [x] **Step 1: Create `site/package.json`**
 
 ```json
 {
@@ -805,12 +805,12 @@ git commit -m "feat(tools): add the reference command for the docs site"
 }
 ```
 
-- [ ] **Step 2: Install the pinned dependencies**
+- [x] **Step 2: Install the pinned dependencies**
 
 Run: `cd site && npm install --save-exact astro@7.4.13 @astrojs/starlight@0.43.1 starlight-links-validator@0.27.0 sharp@0.35.5 && cd ..`
 Expected: `site/package-lock.json` is created, and `site/package.json` gains a `dependencies` block with those four exact versions (no `^`).
 
-- [ ] **Step 3: Create `site/tsconfig.json`**
+- [x] **Step 3: Create `site/tsconfig.json`**
 
 ```json
 {
@@ -820,7 +820,7 @@ Expected: `site/package-lock.json` is created, and `site/package.json` gains a `
 }
 ```
 
-- [ ] **Step 4: Create `site/src/content.config.ts`**
+- [x] **Step 4: Create `site/src/content.config.ts`**
 
 ```ts
 import { defineCollection } from 'astro:content';
@@ -832,7 +832,7 @@ export const collections = {
 };
 ```
 
-- [ ] **Step 5: Create `site/astro.config.mjs`**
+- [x] **Step 5: Create `site/astro.config.mjs`**
 
 ```js
 // @ts-check
@@ -892,7 +892,7 @@ export default defineConfig({
 > `autogenerate` object, as the "Verified facts" section describes. Tasks 6, 8 and 9 don't
 > reference the sidebar config, so nothing else changes.
 
-- [ ] **Step 6: Create `site/src/content/docs/index.mdx`**
+- [x] **Step 6: Create `site/src/content/docs/index.mdx`**
 
 ```mdx
 ---
@@ -942,7 +942,7 @@ The names in these skills are mine: my review bot, my servers, my projects. The
 the skills fit your setup.
 ```
 
-- [ ] **Step 7: Ignore build output and generated pages**
+- [x] **Step 7: Ignore build output and generated pages**
 
 Append to `.gitignore`:
 
@@ -953,7 +953,7 @@ site/.astro/
 site/src/content/docs/reference/
 ```
 
-- [ ] **Step 8: Add the recipes**
+- [x] **Step 8: Add the recipes**
 
 Append to `justfile`:
 
@@ -973,22 +973,22 @@ site-build: site-gen
     cd site && npm ci && npm run build
 ```
 
-- [ ] **Step 9: Build it**
+- [x] **Step 9: Build it**
 
 Run: `bash -o pipefail -c 'just site-build 2>&1 | tail -15'`
 The command must exit 0. `pipefail` makes a failed build fail the command, where a bare `| tail` would report `tail`'s success.
 Expected: `wrote 24 reference pages`, then Astro's build log reporting the pages it built (the 24 reference pages, the home page and a 404 page), the links validator reporting `All internal links are valid.`, and no errors.
 
-- [ ] **Step 10: Look at it**
+- [x] **Step 10: Look at it**
 
 Run: `cd site && npx astro preview --port 4321 &` then open `http://localhost:4321/pg-skills/`. Check that the home page cards link to plugin pages, the sidebar shows only a Reference section (with Plugins, Skills, Agents and Glossary), and `/pg-skills/reference/agents/issue-implementer/` shows the standing rules with `###` headings under "Standing rules". Stop the preview with `kill %1` (or the PID it printed).
 
-- [ ] **Step 11: Make sure generated pages aren't tracked**
+- [x] **Step 11: Make sure generated pages aren't tracked**
 
 Run: `git status --short`
 Expected: `site/` shows `package.json`, `package-lock.json`, `astro.config.mjs`, `tsconfig.json` and `src/content.config.ts` and `src/content/docs/index.mdx`. Nothing under `site/src/content/docs/reference/`, `site/dist/` or `site/node_modules/`.
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 
 ```bash
 git add .gitignore justfile site/package.json site/package-lock.json site/tsconfig.json \
@@ -1005,7 +1005,7 @@ git commit -m "feat(site): add the Starlight site with a generated reference sec
 
 > **Corrected (issue #9, 2026-11-21).** The `concurrency` block moved from the workflow level to the `deploy` job, as below. A workflow-level group made pull request builds share it with production deployments, so a PR update could replace a queued `main` deployment (GitHub keeps one running and one pending run per group). `.github/workflows/pages.yml` is the shipped file.
 
-- [ ] **Step 1: Create the workflow**
+- [x] **Step 1: Create the workflow**
 
 ```yaml
 # Builds the documentation site on every relevant PR and push; deploys it from main.
@@ -1069,12 +1069,12 @@ jobs:
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 ```
 
-- [ ] **Step 2: Check the YAML parses**
+- [x] **Step 2: Check the YAML parses**
 
 Run: `uv run --quiet --no-project --with pyyaml python -c "import yaml,sys; yaml.safe_load(open('.github/workflows/pages.yml')); print('ok')"`
 Expected: `ok`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/pages.yml
@@ -1088,7 +1088,7 @@ git commit -m "ci: build the docs site and deploy it to GitHub Pages"
 **Files:**
 - Modify: `.github/workflows/ci.yml` (the `Tag the next patch version and publish it` step)
 
-- [ ] **Step 1: Add the skip**
+- [x] **Step 1: Add the skip**
 
 In `.github/workflows/ci.yml`, replace:
 
@@ -1115,7 +1115,7 @@ with:
 
 Also update the header comment's second paragraph to say: "Every push to main that changes more than `site/` and `docs/` is a release."
 
-- [ ] **Step 2: Test the condition locally**
+- [x] **Step 2: Test the condition locally**
 
 Run:
 
@@ -1152,7 +1152,7 @@ GNU grep, which the step's `grep` means. Expected: `docs only: skip`, `mixed: re
 > temporary repository, `git mv plugins/p/ref.md docs/ref.md` committed on top of a
 > tagged commit must print `release`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/ci.yml
@@ -1166,7 +1166,7 @@ git commit -m "ci: don't cut a release when only site/ or docs/ changed"
 **Files:**
 - Modify: `README.md`, `plugins/skill-authoring/skills/authoring-skills/SKILL.md`, `catalog.yaml` (and the regenerated manifests)
 
-- [ ] **Step 1: README**
+- [x] **Step 1: README**
 
 Under the first paragraph of `README.md`, add:
 
@@ -1205,7 +1205,7 @@ it. Changes only under `site/` or `docs/` don't cut a release.
 > `just site-dev`: `site-dev` doesn't install dependencies, so a fresh checkout failed with
 > `astro: command not found` (review of PR #23). Read `README.md` for the shipped text.
 
-- [ ] **Step 2: The authoring skill**
+- [x] **Step 2: The authoring skill**
 
 In `plugins/skill-authoring/skills/authoring-skills/SKILL.md`, at the end of the "5. Regenerate and check" bullet list, add:
 
@@ -1217,13 +1217,13 @@ In `plugins/skill-authoring/skills/authoring-skills/SKILL.md`, at the end of the
 
 In `catalog.yaml`, bump `skill-authoring`'s `version` from `0.1.1` to `0.1.2`.
 
-- [ ] **Step 3: Regenerate and check**
+- [x] **Step 3: Regenerate and check**
 
 Run: `just generate && just check && bash -o pipefail -c 'just site-build 2>&1 | tail -3'`
 The command must exit 0 (see Task 5 Step 9 on `pipefail`).
 Expected: `ok` from validation, `OK` from the tests, and a site build with valid links.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add README.md catalog.yaml plugins/skill-authoring .claude-plugin .github/plugin .agents .cursor-plugin
@@ -1239,7 +1239,7 @@ integration branch, and it ends with recorded evidence on that branch. Merging i
 `main` and checking the live site come after it, in **Shipping the milestone** below:
 the coordinator only starts those once this task has merged, so they can't be part of it.
 
-- [ ] **Step 1: Run the gates on the integration branch**
+- [x] **Step 1: Run the gates on the integration branch**
 
 Run: `rm -rf site/dist && just check && bash -o pipefail -c 'just site-build 2>&1 | tail -5'`
 The command must exit 0. Removing `site/dist` first means Step 2 can only see files this
@@ -1248,17 +1248,17 @@ build wrote, and `pipefail` makes a failed build fail the command rather than re
 Expected: tests `OK` (40), `wrote 24 reference pages`, and a site build reporting
 that every internal link is valid.
 
-- [ ] **Step 2: Check the built site**
+- [x] **Step 2: Check the built site**
 
 Run: `test -f site/dist/index.html && test -f site/dist/reference/skills/github-issue-to-pr/index.html && test -f site/dist/reference/agents/issue-implementer/index.html && test -f site/dist/reference/glossary/index.html && echo built`
 Expected: `built`.
 
-- [ ] **Step 3: Check Pages is set up**
+- [x] **Step 3: Check Pages is set up**
 
 Run: `gh api repos/PeterGrace/pg-skills/pages --jq '.build_type, .html_url'`
 Expected: `workflow` and `https://petergrace.github.io/pg-skills/`. Pages was enabled on 2026-11-21. If it isn't set up, stop and report: enabling it needs Peter's go-ahead.
 
-- [ ] **Step 4: Record the evidence**
+- [x] **Step 4: Record the evidence**
 
 Post the output of Steps 1-3 as a comment on this task's issue, then open the
 task's PR. It only changes the plan's own checkboxes, ticking Tasks 1-9, so it has
