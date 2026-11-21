@@ -41,8 +41,8 @@ When you run `github-issue-to-pr`, after the gates and the commit, the skill:
 2. Drafts the PR body into a scratch file. Its statements of fact are claims the audit
    checks.
 3. Dispatches a fresh subagent. The skill asks for a different model from the one that
-   wrote the change; the `issue-implementer` agent overrides this and uses Sonnet, its
-   own model. The auditor gets the issue, the draft body, the repository path and the commit range.
+   wrote the change; the `issue-implementer` agent overrides this and uses Sonnet, usually
+   its own model. The auditor gets the issue, the draft body, the repository path and the commit range.
    It doesn't get the implementer's plan or summary.
 4. Acts on the verdicts, as described in [Read the verdicts](#read-the-verdicts).
 5. In ledger mode, commits `claims.json` in a commit of its own.

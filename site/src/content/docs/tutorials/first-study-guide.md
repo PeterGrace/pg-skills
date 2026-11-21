@@ -31,7 +31,7 @@ You don't need to read it first.
 
 You'll write a guide for [`pallets/itsdangerous`](https://github.com/pallets/itsdangerous),
 a Python library for signing data so that it can be passed through untrusted places such
-as a cookie or a URL. I chose it because:
+as a cookie or a URL. It suits the tutorial because:
 
 - it's public and under a permissive license, so you can clone it without an account;
 - it's small: about 1,200 lines of Python in `__init__.py` and seven modules under `src/itsdangerous/`,
@@ -158,8 +158,8 @@ Look at what it wrote:
 find docs/study-guide/fact-check -type f | sort
 ```
 
-There is a `SUMMARY.md` and a `.review.md` file for each doc it reviewed, in the same layout as
-the guide. Open `SUMMARY.md`. Read the provenance section, the totals by severity, and the
+There is a `SUMMARY.md` and a `.review.md` file for each doc it reviewed, laid out like the
+guide (the flashcards share one `flashcards.review.md`). Open `SUMMARY.md`. Read the provenance section, the totals by severity, and the
 list under *Fix these first (Critical)*. Then open one `.review.md` and read a finding.
 It has a verdict, a severity, the claim, the evidence (a file and symbol) and a suggested
 correction. The review also lists a few spot-checks it verified.
@@ -171,8 +171,7 @@ findings, the next step has little to do, and you've still run the loop.
 ## 5. Reconcile the findings
 
 The reconcile step can run in the same session, or a new one. The skills don't name a
-model for it, and it re-checks each finding against the code, so the choice isn't
-critical. Say:
+model for it. It re-checks each finding against the code before it edits anything. Say:
 
 ```text
 Reconcile the fact-check findings into the study guide.
@@ -213,7 +212,7 @@ copy it somewhere outside the `fact-check/` folder first if you want to keep it.
 
 Whether to do this, and what to do about the deferred items, is a judgment call.
 [Why I fact-check generated docs](/pg-skills/explanation/why-fact-check-generated-docs/#how-i-finish-a-guide-that-has-open-findings)
-says how I decide.
+says how the author decides.
 
 ## What you did
 

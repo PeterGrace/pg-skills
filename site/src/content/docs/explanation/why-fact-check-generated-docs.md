@@ -52,7 +52,7 @@ I have four reasons, and I hold all of them.
 
 **Hallucinations.** Generated docs confidently describe code that doesn't exist or works
 differently from what they say. The writing skill is built around this: its
-"core principle" is to stay grounded, and it says a plausible-but-wrong doc is worse than
+core principle is to stay grounded, and it says a plausible-but-wrong doc is worse than
 no doc, because people trust it. That rule makes the first draft better. It doesn't make
 the draft checked.
 
@@ -82,13 +82,12 @@ they differ. The reconcile skill assumes the same thing: it describes the fact-c
 run "(ideally) on a different model".
 
 In practice I write with Opus and check with Sonnet. I run the check in a new Claude Code
-window and switch it to Sonnet with `/model`. The new window matters as much as the
-model: a check run in the writer's own session would still have the writing conversation
+window and switch it to Sonnet with `/model`. The new window matters too: a check run in the writer's own session would still have the writing conversation
 in context.
 
 This is a different reason from the one in my PR audits. There, my `issue-implementer`
-agent runs the auditor on Sonnet, the same model as the implementer, to save tokens, and
-the independence comes from a fresh context
+agent runs the auditor on Sonnet, usually the same model as the implementer, to save tokens, and
+the independence usually comes from a fresh context
 ([Why audit claims](/pg-skills/explanation/why-audit-claims/#what-gates-miss) has the
 detail). For study guides, the skill's argument is about shared blind spots.
 
@@ -115,6 +114,6 @@ again, because a correction can introduce a new error. It doesn't start that run
 
 A fact-check is a model reading code, so it can be wrong in both directions. That is why
 reconcile re-checks, and why the skill says to return **Contradicted** only when it can
-point to code that conflicts with the claim. Some claims, such as design rationale and
-business rules, can't be settled from code at all. Those go to a person, and they are
-the deferred items above.
+point to code that conflicts with the claim. Some claims can't be settled from code at all.
+Business rules and external systems go to a person, as the deferred items above. Design
+rationale is hedged or moved under the open questions instead.

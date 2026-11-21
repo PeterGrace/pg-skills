@@ -5,7 +5,7 @@ sidebar:
   order: 6
 ---
 
-Every implementer I start runs on Sonnet. Opus takes over a pull request only when a
+Every pull request starts with a Sonnet implementer. Opus takes over a pull request only when a
 recorded trigger fires. This page gives the rule, my reasons, and the numbers the
 skills record. For how to change the policy in your own setup, see
 [Adapt the skills to your setup](/pg-skills/how-to/adapt-the-skills/#choose-your-models).
@@ -47,7 +47,7 @@ parent's model."
 
 ## Why I set it up this way
 
-I gave two reasons in the interview.
+I have two reasons.
 
 **The usage limit.** Opus implementers were most of my weekly spend. I set the policy
 to keep within my usage limits.
@@ -81,7 +81,9 @@ skill asks for a different model: an Opus auditor costs too many tokens (pgrace,
 2026-11-15)." The auditor is "still a fresh subagent that gets none of your
 reasoning," and the agent is told never to run it on Opus.
 
-In this one place the agent definition overrides the skill. The
+On the auditor's model, the agent definition overrides the skill. It overrides
+it on other points too, such as the gates; see the
+[agent reference](/pg-skills/reference/agents/issue-implementer/). The
 [glossary](/pg-skills/reference/glossary/#sonnet-first-opus-to-escalate) has the
 policy's one-paragraph version. For why the audit exists at all, see
 [Why I audit claims](/pg-skills/explanation/why-audit-claims/).
@@ -100,13 +102,14 @@ milestone, escalated zero times. Every commit on its ten PRs
 [#23](https://github.com/PeterGrace/pg-skills/pull/23),
 [#24](https://github.com/PeterGrace/pg-skills/pull/24) and
 [#27](https://github.com/PeterGrace/pg-skills/pull/27)) carries a
-`Co-Authored-By: Claude Sonnet` trailer. I record that as what happened on one epic. It isn't
+`Co-Authored-By: Claude Sonnet` trailer, except two merges that caught a branch up, and none
+carries an Opus one. I record that as what happened on one epic. It isn't
 why I chose the policy, and one epic is too few to say how often a trigger fires.
 
-## How I check the policy
+## Checking the policy
 
 The [`token-usage-review`](/pg-skills/reference/skills/token-usage-review/) skill, in
-the [`usage-analysis`](/pg-skills/reference/plugins/usage-analysis/) plugin, reads my
+the [`usage-analysis`](/pg-skills/reference/plugins/usage-analysis/) plugin, reads the
 local Claude Code transcripts and reports where the tokens went: by model, token type,
 session and subagent type, plus Opus overrides with no stated reason. The "58 of 117"
 figure above is the kind of finding it produces. It suggests re-running the review
@@ -117,16 +120,4 @@ the machine it runs on.
 
 ## What the skills need
 
-The skills named here have these requirements:
-
-- `github-workflows` as a plugin needs [git](/pg-skills/reference/dependencies/#git)
-  and [gh](/pg-skills/reference/dependencies/#gh).
-- `github-issue-to-pr` needs [just](/pg-skills/reference/dependencies/#just) and
-  [claims-audit](/pg-skills/reference/dependencies/#claims-audit), and can use
-  [claims-mcp](/pg-skills/reference/dependencies/#claims-mcp) for a ledger.
-- `github-epic-to-merged-prs` needs a
-  [review bot](/pg-skills/reference/dependencies/#review-bot), and can use
-  [Telekin](/pg-skills/reference/dependencies/#telekin).
-- `github-issue-burndown` needs [jq](/pg-skills/reference/dependencies/#jq) and a
-  review bot, and can use Telekin.
-- `token-usage-review` needs [Python 3](/pg-skills/reference/dependencies/#python).
+What each skill needs is on the [dependencies page](/pg-skills/reference/dependencies/).

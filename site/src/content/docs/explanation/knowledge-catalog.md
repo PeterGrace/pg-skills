@@ -13,8 +13,7 @@ can't read my catalog, and the skills work around that.
 
 ## Why I don't stop at CLAUDE.md and built-in memory
 
-I asked myself what the catalog gives me that those two don't. The answer was all four
-of these, and then one more sentence: "It enriches essentially every interaction I have
+The catalog gives me four things those two don't. In my words: "It enriches essentially every interaction I have
 with an LLM these days."
 
 - **Shared across projects.** Every session and project reads the same place.
@@ -77,15 +76,4 @@ has the steps.
 
 ## What the skills here need
 
-- `github-milestone-plan-to-issues`: [superpowers](/pg-skills/reference/dependencies/#superpowers)
-  for `superpowers:writing-plans`, and optionally
-  [Telekin](/pg-skills/reference/dependencies/#telekin).
-- `github-epic-to-merged-prs`: a
-  [review bot](/pg-skills/reference/dependencies/#review-bot), and optionally Telekin.
-- `github-issue-burndown`: [jq](/pg-skills/reference/dependencies/#jq) and a review
-  bot, and optionally Telekin.
-- `github-epic-close-out`: optionally a review bot, for its review gate, and optionally
-  Telekin.
-- The `github-workflows` plugin as a whole needs
-  [git](/pg-skills/reference/dependencies/#git) and
-  [gh](/pg-skills/reference/dependencies/#gh).
+What each skill needs is on the [dependencies page](/pg-skills/reference/dependencies/).
