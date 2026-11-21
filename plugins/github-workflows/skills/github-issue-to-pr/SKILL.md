@@ -205,7 +205,7 @@ The gates in Step 6 check that the code builds and its tests pass. This step che
 
 **2. Draft the PR body now**, using the Step 9 template, into a scratch file. Its statements of fact are claims the audit checks.
 
-**3. Dispatch the auditor: a fresh subagent on a different model** from yours (Agent tool with `model: "sonnet"` when you are Opus; another model family if you are already on Sonnet). Give it only:
+**3. Dispatch the auditor: a fresh subagent on a different model** from yours (Agent tool with `model: "sonnet"` when you are Opus; another model family if you are already on Sonnet). If you are the `issue-implementer` agent, its auditor rule overrides this: the auditor runs on Sonnet whatever model you run on. Give it only:
 - the issue URL, title, body and any comments that change the requirements;
 - the path of the draft PR body;
 - the repo path and the commit range `<default-branch>..HEAD`;
