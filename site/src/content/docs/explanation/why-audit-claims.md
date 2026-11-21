@@ -79,7 +79,7 @@ The audit runs in one of two modes. The mode depends on whether the project has 
 
 For pull requests, claims-mcp is optional, and you need it only for ledger mode.
 
-I keep a committed ledger for what I described as "generally long-lived, spec-driven, or
+I keep a committed ledger for what I described as "Generally long-lived, spec-driven, or
 correctness-matters projects". Everything else stays in table-only mode.
 
 My advice, in my words: "Sometimes I delay the committed ledger until a later date,

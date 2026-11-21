@@ -197,7 +197,7 @@ blocked issue.
   [PR #806](https://github.com/hypotheosis/okf_mcp/pull/806) followed. The second
   [stop comment](https://github.com/hypotheosis/okf_mcp/issues/759#issuecomment-7045610519)
   says it stopped after three address rounds, with the PR left open and one review
-  point unresolved. (That run used an earlier round cap; the current skill allows two
+  point unresolved. (The comment reports a cap of three address rounds; the current skill allows two
   Sonnet and two Opus rounds.) At the time of writing the issue still carries `burndown-blocked` and PR
   #806 is open.
 

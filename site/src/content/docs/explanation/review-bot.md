@@ -54,7 +54,8 @@ All three are on PRs in this repository, so you can see what a review looks like
   paragraph, then Plan fidelity, Tests, Security and Claims sections. The Security
   section is where the path-traversal finding sits, with an inline comment on
   `tools/skills.py` at the line. A second inline comment, on `tests/test_skills_tool.py`,
-  says the new handler's error branch is never exercised. Its
+  says the new handler's exception branch is never reached, because the test returns
+  from the earlier validation gate. Its
   Tests section asks for a regression case.
 - [Re-review of PR #25, score 94](https://github.com/PeterGrace/pg-skills/pull/25#pullrequestreview-6005651304).
   The review after the fix, on the milestone PR. Compare it with her
