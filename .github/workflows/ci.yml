@@ -58,7 +58,8 @@ jobs:
             next=v0.1.0
           else
             # Releases are for skills. Skip when only the docs site or docs/ changed.
-            if ! git diff --name-only "$latest" "$GITHUB_SHA" | grep -qvE '^(site|docs)/'; then
+            # NUL-delimited, so git doesn't quote unusual filenames (non-ASCII, tabs).
+            if ! git diff --name-only -z "$latest" "$GITHUB_SHA" | grep -qzvP '\A(site|docs)/'; then
               echo "Only site/ and docs/ changed since $latest; not releasing"; exit 0
             fi
             IFS=. read -r major minor patch <<< "${latest#v}"
