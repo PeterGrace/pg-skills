@@ -682,6 +682,7 @@ def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str,
             pages[f"skills/{skill}.md"] = skill_page(plugin, skill, front, ctx, skill_order)
     return dict(sorted(pages.items()))
 
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
     parser.add_argument("--root", type=Path, default=Path("."), help="repository root")
