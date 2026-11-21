@@ -10,7 +10,7 @@ a long agent task. It is a separate guide from
 [Validate a change](/pg-skills/how-to/validate-a-change/) because the setup and the
 result differ. In a PR audit, `github-issue-to-pr` runs the skill for you and the result
 is a table in the PR body. Here you ask for the audit yourself, and the findings
-live in a ledger. Why I do it: [Why audit claims](/pg-skills/explanation/why-audit-claims/#where-else-i-use-it).
+live in a ledger. Why to do it: [Why audit claims](/pg-skills/explanation/why-audit-claims/#where-else-i-use-it).
 
 ## Before you start
 
@@ -46,7 +46,8 @@ live in a ledger. Why I do it: [Why audit claims](/pg-skills/explanation/why-aud
    re-audits the claims whose evidence has changed. Earlier verdicts stay in the history.
 
 claims-mcp's [first-audit guide](https://hypotheosis.github.io/claims-mcp/guides/first-audit.html)
-explains each of the six steps and what to check at each.
+explains the six steps and what to expect at each, including what to check for
+compound claims.
 
 ## Use a different model
 

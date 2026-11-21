@@ -75,7 +75,7 @@ The audit runs in one of two modes. The mode depends on whether the project has 
   The results go into the PR body as a table, without claim ids. The PR body says that
   the findings were not recorded.
 
-claims-mcp is optional, and you need it only for ledger mode.
+For pull requests, claims-mcp is optional, and you need it only for ledger mode.
 
 I keep a committed ledger for projects that are "generally long-lived, spec-driven, or
 correctness-matters." Everything else stays in table-only mode.
@@ -88,8 +88,8 @@ think the project may need one, start it at the beginning.
 
 For a real committed ledger, look at
 [`claims.json` in claims-mcp's own repository](https://github.com/hypotheosis/claims-mcp/blob/main/claims.json).
-When I read it on 2026-11-21 it held 197 claims, and it records the refuted ones as well
-as the supported ones: 190 supported, 5 refuted and 2 not_enough_info. Each release also
+When I read it on 2026-11-21 it held 197 claims, 23 of them retired. By latest verdict that was 190 supported,
+5 refuted (all retired) and 2 not_enough_info. Each release also
 attaches an audit report as PDFs, `audit.pdf` and `audit-full.pdf`, to its
 [GitHub release](https://github.com/hypotheosis/claims-mcp/releases/tag/v0.2.5).
 claims-mcp's own docs have a
@@ -121,7 +121,7 @@ Both of these are PRs in this repository, in table-only mode.
   or open PR still makes the script skip it. All 7 were fixed before the PR opened. The
   audit also had 6 not_enough_info findings, and about 110 supported claims.
 
-Gates passed on both PRs before the audit ran. They check the code, and these
+Gates passed on both PRs. They check the code, and these
 were statements about it.
 
 ## Where else I use it
@@ -138,8 +138,9 @@ those.
 
 ## What it doesn't do
 
-The audit is a model reading evidence, so it can be wrong. claims-mcp itself only
-records; it doesn't run your code, and the auditor has to run the checks. The
+The audit is a model reading evidence, so it can be wrong. claims-mcp doesn't run your
+tests or code (it records evidence and runs read-only git queries to pin anchors), so the
+auditor has to run the checks. The
 skill calls `not_enough_info` an honest outcome, to use instead of guessing. The audit
 is also one check among several: gates, the audit, the reviewer and, for an epic, the
 [close-out audit](/pg-skills/how-to/close-out-an-epic/).

@@ -83,7 +83,7 @@ Add `.claims.json.lock` and `.claims.json.tmp` to `.gitignore`.
 The claims server opens `claims.json` relative to the directory the session started in.
 If you work in a git worktree, the auditor has to pass the worktree's absolute ledger
 path as `catalog` on every claims call, and the skill first probes that your server
-honours the argument. A server older than 0.2.5 doesn't. If the probe fails, the skill
+honours the argument. A server older than 0.2.5 doesn't. If the probe doesn't return an error naming the probe path, the skill
 stops and asks you to upgrade claims-mcp and restart the session or run `/mcp`. 
 
 If `main`'s ledger changed since your branch started, the skill takes main's file and
@@ -137,7 +137,7 @@ Real tables are on [PR #34](https://github.com/PeterGrace/pg-skills/pull/34) and
 5. Anything marked pre-existing is a problem in code the PR didn't touch. Decide whether to file an issue for it.
 
 A reviewer, human or bot, can then check the body against the diff, as
-[Brooke does for me](/pg-skills/explanation/review-bot/#what-i-rely-on-her-for).
+[a review bot can do](/pg-skills/explanation/review-bot/#what-i-rely-on-her-for).
 
 ## Related
 
