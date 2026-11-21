@@ -69,6 +69,77 @@ and killing processes by PID only.
 
 ## 2. Idea to merged PRs
 
+### How closely do I read the spec and the plan?
+
+**Answer:** I approve the spec only.
+
+**Notes:** once the spec is right, Peter doesn't read the plan. Brooke's review of
+the plan PR and the gates catch problems in the plan. The site should say plainly
+that the spec is where Peter puts his attention.
+
+### What do I check when accepting the sub-issue breakdown?
+
+**Answer:** "I don't use this one as much anymore, but I usually just trusted it."
+
+### What replaced the breakdown step?
+
+**Answer:** the milestone skill does it. `github-milestone-plan-to-issues` files one
+sub-issue per plan task, so there's no separate breakdown to review.
+
+**Notes:** `github-issue-to-subissues` still runs inside the milestone skill. On its
+own it's for an epic that has no checked-in plan. The site should present the
+milestone skill as the normal path.
+
+### What do I rely on Brooke's review for?
+
+**Answer:** all four:
+- **Real bugs:** correctness and edge cases the agent missed.
+- **Plan fidelity:** the PR does what the plan and design said.
+- **Honest PR descriptions:** she catches claims the diff doesn't support.
+- **Security:** a blocking security finding escalates a PR to Opus.
+
+**Notes:** epic #3 has an example of each:
+- **Real bugs:** path traversal in `write_reference` (#18) and the release skip's
+  SIGPIPE (#25, fixed in #27).
+- **Plan fidelity:** her plan-fidelity section in each review.
+- **Honest PR descriptions:** a stale description on #16, and the scope claim on #29.
+
+### Why merge an epic into a milestone branch instead of `main`?
+
+**Answer:**
+- **`main` stays shippable:** half a milestone never reaches `main` or a release,
+  and hotfixes can still go out.
+- **One final review:** Brooke and the close-out audit see the whole milestone at
+  once, which catches problems that span PRs. On #25 she caught one that every
+  sub-issue review had missed.
+- **Easy to abandon:** if the milestone goes wrong, `main` is untouched.
+
+**Notes:** "fewer releases" wasn't chosen as a reason.
+
+### What goes wrong most often?
+
+**Answer:** all four:
+- **Cost and context:** Opus implementers and large coordinator contexts use up the
+  weekly limit.
+- **Stalled reviews:** Brooke skips a stale branch or misses a request, and the PR
+  sits.
+- **Machine overload:** too many agents, gates or build caches at once.
+- **Scope creep:** follow-ups and audit findings grow the epic past the plan.
+
+**Notes:** each has a recorded incident and a rule in the skills:
+- **Cost and context:** Sonnet first, state files and `/compact` checkpoints.
+- **Stalled reviews:** stale-branch merges, `/prrb` and watchers.
+- **Machine overload:** gate locks, `cargo clean` before removing a worktree, and
+  limits on parallel agents.
+- **Scope creep:** ask once, in a batch, which follow-ups belong in the epic.
+
+The site's how-to and explanation pages should present them as warnings.
+
+### Is the close-out audit worth it?
+
+**Answer:** yes, it finds gaps. It has caught real misses after every PR had passed
+review, such as undocumented divergences and acceptance criteria with no test.
+
 ## 3. Backlog burndown
 
 ## 4. Validating with claims-mcp
