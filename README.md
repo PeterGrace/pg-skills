@@ -131,6 +131,12 @@ just site-build       # what CI runs: install, generate the reference, build, ch
 `just site-dev` doesn't install dependencies; `just site-build` does (`npm ci`), so
 running it once also works.
 
+The build also publishes the site for AI agents: `llms.txt` (an index), `llms-full.txt`
+(every page in one file) and `llms-small.txt` (an abridged version), plus a raw markdown
+copy of every page at its address with `.md` in place of the trailing slash (the home page
+is `index.md`). Point an agent at `https://petergrace.github.io/pg-skills/llms-full.txt`.
+The per-page endpoint is `site/src/pages/[...slug].md.ts`.
+
 The reference pages are written by `tools/skills.py reference` from `catalog.yaml`,
 each `SKILL.md`, each plugin's `agents/` and `GLOSSARY.md`, so they never need a
 hand edit. Pushes to `main` that touch the site, the skills or the tooling redeploy

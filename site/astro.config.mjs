@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightLinksValidator from 'starlight-links-validator';
+import starlightLlmsTxt from 'starlight-llms-txt';
 
 const repo = 'https://github.com/PeterGrace/pg-skills';
 const docs = new URL('./src/content/docs/', import.meta.url);
@@ -37,7 +38,14 @@ export default defineConfig({
 			title: 'pg-skills',
 			description: 'How Peter Grace plans, builds and reviews software with AI agent skills.',
 			social: [{ icon: 'github', label: 'GitHub', href: repo }],
-			plugins: [starlightLinksValidator()],
+			plugins: [
+				starlightLinksValidator(),
+				starlightLlmsTxt({
+					projectName: 'pg-skills',
+					description:
+						'How Peter Grace plans, builds and reviews software with AI agent skills.',
+				}),
+			],
 			sidebar: sections
 				.filter(({ directory }) => existsSync(new URL(directory, docs)))
 				.map(({ label, directory, items }) => ({

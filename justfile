@@ -49,4 +49,4 @@ site-dev: site-gen
 
 # Build the documentation site into site/dist, checking every internal link.
 site-build: site-gen
-    cd site && npm ci && npm run build
+    cd site && npm ci && npm test && npm run build && npm run check-output
