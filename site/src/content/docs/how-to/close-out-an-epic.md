@@ -69,7 +69,7 @@ audit is what closes it.
 
 List the sub-issues and their PRs in a table instead, link the pre-merge audit
 comment, and say the PR doesn't close the epic. [PR #25](https://github.com/PeterGrace/pg-skills/pull/25)
-ends with "This PR doesn't close #3 itself: the epic closes after the post-merge audit."
+has no closing keyword. Its body says only that the epic stays open until the post-merge audit completes.
 
 The sub-issue PRs go the other way. Their `Closes #N` does nothing on a non-default
 base, so the coordinator closes each sub-issue after the merge.

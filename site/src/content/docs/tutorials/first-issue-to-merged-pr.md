@@ -112,7 +112,7 @@ to ask you unless something fails.
    results go into the PR body. The audit follows the `claims-audit` skill, which this
    plugin doesn't ship. If your agent can't find it, it may report the audit as skipped,
    and the rest of the tutorial still works.
-5. It commits, pushes, opens a PR whose body includes `Closes #1`, and comments the PR
+5. It commits, pushes, opens a PR whose body has a closing keyword line for issue 1, and comments the PR
    link on the issue.
 
 When it finishes you have a PR number. Open it with `gh pr view 2 --web` (use your number)
@@ -171,7 +171,7 @@ for you, and neither does the workflow unless you tell it to.
 gh pr merge 2 --merge
 ```
 
-Because the PR's base is `main`, the `Closes #1` in its body closes the issue when it
+Because the PR's base is `main`, the closing keyword in its body closes the issue when it
 merges. Check:
 
 ```bash
