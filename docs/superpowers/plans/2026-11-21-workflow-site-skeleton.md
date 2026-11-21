@@ -205,15 +205,9 @@ class ReferenceTest(RepoTestCase):
         )
         return pages
 
-    def test_writes_one_page_per_plugin_and_skill(self) -> None:
+    def test_writes_one_page_per_skill(self) -> None:
         self.assertEqual(
-            sorted(self.pages()),
-            [
-                "plugins/release-tools.md",
-                "plugins/writing.md",
-                "skills/commit-messages.md",
-                "skills/semver-bump.md",
-            ],
+            sorted(self.pages()), ["skills/commit-messages.md", "skills/semver-bump.md"]
         )
 
     def test_skill_page_links_plugin_and_source(self) -> None:
@@ -249,7 +243,7 @@ class ReferenceTest(RepoTestCase):
         self.assertNotIn("## Claude Code settings", self.pages()["skills/commit-messages.md"])
 ```
 
-`test_writes_one_page_per_plugin_and_skill` will fail until Task 3 adds plugin pages, which is expected. It is listed here so the full page set is pinned from the start.
+`test_writes_one_page_per_skill` pins only the skill pages, which is all this task produces. Task 3 replaces it with a test for the full page set, so every task's PR passes `just check` on its own.
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
@@ -366,7 +360,7 @@ def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str,
 - [ ] **Step 4: Run the tests**
 
 Run: `just test`
-Expected: every test passes except `test_writes_one_page_per_plugin_and_skill`, which fails because the `plugins/` pages are missing. That is fixed in Task 3.
+Expected: `OK`, with every `ReferenceTest` test passing.
 
 - [ ] **Step 5: Commit**
 
@@ -385,7 +379,23 @@ git commit -m "feat(tools): generate reference pages for skills"
 
 - [ ] **Step 1: Write the failing tests**
 
-Add these methods to `ReferenceTest`:
+In `ReferenceTest`, replace Task 2's `test_writes_one_page_per_skill` with a test for
+the full page set, now that plugin pages exist:
+
+```python
+    def test_writes_one_page_per_plugin_and_skill(self) -> None:
+        self.assertEqual(
+            sorted(self.pages()),
+            [
+                "plugins/release-tools.md",
+                "plugins/writing.md",
+                "skills/commit-messages.md",
+                "skills/semver-bump.md",
+            ],
+        )
+```
+
+Then add these methods:
 
 ```python
     def test_plugin_page_lists_install_and_skills(self) -> None:
@@ -436,7 +446,7 @@ Add these methods to `ReferenceTest`:
 - [ ] **Step 2: Run the tests to verify they fail**
 
 Run: `just test`
-Expected: FAIL with `KeyError: 'plugins/release-tools.md'`, `KeyError: 'agents/helper.md'` and `KeyError: 'glossary.md'`.
+Expected: FAIL with `KeyError: 'plugins/release-tools.md'`, `KeyError: 'agents/helper.md'` and `KeyError: 'glossary.md'`, and an `AssertionError` from `test_writes_one_page_per_plugin_and_skill`, whose list now includes the plugin pages.
 
 - [ ] **Step 3: Implement**
 
@@ -577,7 +587,7 @@ Then replace the body of `reference_pages` with:
 - [ ] **Step 4: Run the tests**
 
 Run: `just test`
-Expected: `OK`, with every `ReferenceTest` test passing, including `test_writes_one_page_per_plugin_and_skill`.
+Expected: `OK`, with every `ReferenceTest` test passing, including `test_writes_one_page_per_plugin_and_skill`, which replaced Task 2's skills-only test.
 
 - [ ] **Step 5: Commit**
 
