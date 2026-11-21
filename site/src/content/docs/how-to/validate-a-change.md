@@ -13,14 +13,12 @@ of [github-issue-to-pr](/pg-skills/reference/skills/github-issue-to-pr/), and th
 ## Install
 
 1. Install the [claims-audit](/pg-skills/reference/dependencies/#claims-audit) skill.
-   `github-issue-to-pr` needs it. From a checkout of
-   [claims-mcp](https://github.com/hypotheosis/claims-mcp), copy its folder:
-
-   ```bash
-   mkdir -p ~/.claude/skills
-   cp -r skills/claims-audit ~/.claude/skills/
-   ```
-
+   `github-issue-to-pr` needs it. Copy the skill's folder, `skills/claims-audit` in a
+   checkout of [claims-mcp](https://github.com/hypotheosis/claims-mcp), into your Claude
+   Code skills directory. claims-mcp's
+   [install guide](https://hypotheosis.github.io/claims-mcp/guides/install.html#3-install-the-skill)
+   has the exact commands for your platform, and for installing it into a project
+   instead of for yourself.
    Restart Claude Code afterwards.
 2. Optional: install [claims-mcp](/pg-skills/reference/dependencies/#claims-mcp). You
    need it only for ledger mode, and for audits outside a PR (see

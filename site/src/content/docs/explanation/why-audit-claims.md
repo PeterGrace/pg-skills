@@ -88,9 +88,8 @@ think the project may need one, start it at the beginning.
 
 For a real committed ledger, look at
 [`claims.json` in claims-mcp's own repository](https://github.com/hypotheosis/claims-mcp/blob/main/claims.json).
-When I read it on 2026-11-21 it held 197 claims, 23 of them retired. By latest verdict that was 190 supported,
-5 refuted (all retired) and 2 not_enough_info. Each release also
-attaches an audit report as PDFs, `audit.pdf` and `audit-full.pdf`, to its
+It keeps retired claims and the verdict history as well as the current
+verdicts. Each release also attaches an audit report as PDFs, `audit.pdf` and `audit-full.pdf`, to its
 [GitHub release](https://github.com/hypotheosis/claims-mcp/releases/tag/v0.2.5).
 claims-mcp's own docs have a
 [browser viewer](https://hypotheosis.github.io/claims-mcp/viewer/) for any public
