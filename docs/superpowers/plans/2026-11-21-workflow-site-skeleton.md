@@ -1050,7 +1050,7 @@ with:
           else
             # Releases are for skills. Skip when only the docs site or docs/ changed.
             # NUL-delimited, so git doesn't quote unusual filenames (non-ASCII, tabs).
-            if ! git diff --name-only -z "$latest" "$GITHUB_SHA" | grep -qzvP '\A(site|docs)/'; then
+            if ! git diff --name-only --no-renames -z "$latest" "$GITHUB_SHA" | grep -qzvP '\A(site|docs)/'; then
               echo "Only site/ and docs/ changed since $latest; not releasing"; exit 0
             fi
             IFS=. read -r major minor patch <<< "${latest#v}"
@@ -1078,17 +1078,22 @@ GNU grep, which the step's `grep` means. Expected: `docs only: skip`, `mixed: re
 > into `grep -qvE '^(site|docs)/'`. With the default `core.quotePath`, git quotes
 > non-ASCII, tab and `"` filenames (`"docs/caf\303\251.md"`), which begin with a quote
 > and so counted as outside `docs/`, releasing on a docs-only change. The step now uses
-> `git diff --name-only -z` with `grep -qzvP '\A(site|docs)/'`, and the fixed-input
+> `git diff --name-only --no-renames -z` with `grep -qzvP '\A(site|docs)/'`, and the fixed-input
 > check above feeds the same NUL-delimited form. To exercise git's real output, also run:
 >
 > ```bash
 > t=$(mktemp -d) && git -C "$t" init -q && cd "$t" && mkdir docs && echo a > README &&
 >   git add . && git -c user.name=t -c user.email=t@example.com commit -qm a && git tag v0.1.0 &&
 >   echo x > "docs/café.md" && git add -A && git -c user.name=t -c user.email=t@example.com commit -qm b &&
->   git diff --name-only -z v0.1.0 HEAD | command grep -qzvP '\A(site|docs)/' && echo release || echo skip
+>   git diff --name-only --no-renames -z v0.1.0 HEAD | command grep -qzvP '\A(site|docs)/' && echo release || echo skip
 > ```
 >
 > Expected: `skip`.
+>
+> `--no-renames` is needed because rename detection lists only the destination: moving a
+> shipped file from `plugins/` to `docs/` would otherwise look docs-only. In the same
+> temporary repository, `git mv plugins/p/ref.md docs/ref.md` committed on top of a
+> tagged commit must print `release`.
 
 - [ ] **Step 3: Commit**
 

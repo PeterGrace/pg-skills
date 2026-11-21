@@ -59,7 +59,7 @@ jobs:
           else
             # Releases are for skills. Skip when only the docs site or docs/ changed.
             # NUL-delimited, so git doesn't quote unusual filenames (non-ASCII, tabs).
-            if ! git diff --name-only -z "$latest" "$GITHUB_SHA" | grep -qzvP '\A(site|docs)/'; then
+            if ! git diff --name-only --no-renames -z "$latest" "$GITHUB_SHA" | grep -qzvP '\A(site|docs)/'; then
               echo "Only site/ and docs/ changed since $latest; not releasing"; exit 0
             fi
             IFS=. read -r major minor patch <<< "${latest#v}"
