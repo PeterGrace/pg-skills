@@ -94,6 +94,9 @@ just check
   and `uv`.
 - **Fix every reported error and rerun** until it passes. Error messages name the file
   and the rule.
+- **The site's reference pages need nothing from you.** They are generated from the
+  skill and the catalog on every deploy. Run `just site-build` if you want to see the
+  page, or to check a skill's description renders cleanly.
 
 ## 6. Ship it
 

@@ -1,0 +1,45 @@
+---
+title: pg-skills
+description: My AI agent skills for planning, building and reviewing software, and how I use them.
+template: splash
+hero:
+  tagline: The agent skills I use to take work from an idea to merged pull requests, and how I run them.
+  actions:
+    - text: Browse the plugins
+      link: /pg-skills/reference/plugins/github-workflows/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/PeterGrace/pg-skills
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+These are the skills I use with Claude Code every day: planning features into issues,
+fanning issues out to subagents, getting each pull request reviewed by my review bot
+Brooke, and checking that the result does what it claimed. They install in Claude Code,
+GitHub Copilot CLI, OpenAI Codex, Cursor and Gemini CLI.
+
+<CardGrid>
+	<Card title="github-workflows" icon="github">
+		Plan, groom and split issues, implement them with subagents, answer review
+		feedback, and close out epics. [Read more](/pg-skills/reference/plugins/github-workflows/)
+	</Card>
+	<Card title="forgejo-workflows" icon="seti:git">
+		The same issue-to-PR workflows on Forgejo.
+		[Read more](/pg-skills/reference/plugins/forgejo-workflows/)
+	</Card>
+	<Card title="study-guides" icon="open-book">
+		Write study docs for a codebase, fact-check them, and reconcile the fixes.
+		[Read more](/pg-skills/reference/plugins/study-guides/)
+	</Card>
+	<Card title="skill-authoring" icon="pencil">
+		How to add or change a skill in this repository.
+		[Read more](/pg-skills/reference/plugins/skill-authoring/)
+	</Card>
+</CardGrid>
+
+The names in these skills are mine: my review bot, my servers, my projects. The
+[glossary](/pg-skills/reference/glossary/) says what each one is and what to change so
+the skills fit your setup.

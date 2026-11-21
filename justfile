@@ -36,3 +36,17 @@ test:
 
 # Run everything CI runs. Use before pushing.
 check: validate generate-check typecheck test
+
+site_ref := "site/src/content/docs/reference"
+
+# Write the site's reference pages from the catalog and skills.
+site-gen:
+    {{ skills }} reference --out {{ site_ref }} --repo PeterGrace/pg-skills --url-prefix /pg-skills/reference
+
+# Preview the documentation site locally, with live reload.
+site-dev: site-gen
+    cd site && npm run dev
+
+# Build the documentation site into site/dist, checking every internal link.
+site-build: site-gen
+    cd site && npm ci && npm run build

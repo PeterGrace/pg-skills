@@ -3,9 +3,9 @@
 # `just check` validates the skills, checks the generated manifests are current,
 # type-checks and runs the tests: exactly what runs locally.
 #
-# Every push to main is a release: once the checks pass, the `release` job tags the
-# next patch version and publishes a GitHub release. Harnesses that track main get the
-# same commit.
+# Every push to main that changes more than `site/` and `docs/` is a release: once
+# the checks pass, the `release` job tags the next patch version and publishes a
+# GitHub release. Harnesses that track main get the same commit.
 name: CI
 
 on:
@@ -57,6 +57,19 @@ jobs:
           if [ -z "$latest" ]; then
             next=v0.1.0
           else
+            # Releases are for skills. Skip when only the docs site or docs/ changed.
+            # NUL-delimited, so git doesn't quote unusual filenames (non-ASCII, tabs).
+            # Write the diff to a file first: piping it into `grep -q` makes git die of
+            # SIGPIPE when grep exits early, and `pipefail` then reads that as docs-only.
+            changed=$(mktemp)
+            git diff --name-only --no-renames -z "$latest" "$GITHUB_SHA" > "$changed"
+            status=0
+            grep -qzvP '\A(site|docs)/' "$changed" || status=$?
+            if [ "$status" -eq 1 ]; then
+              echo "Only site/ and docs/ changed since $latest; not releasing"; exit 0
+            elif [ "$status" -ne 0 ]; then
+              echo "Could not classify the changed paths (grep exit $status)" >&2; exit "$status"
+            fi
             IFS=. read -r major minor patch <<< "${latest#v}"
             next="v${major}.${minor}.$((patch + 1))"
           fi

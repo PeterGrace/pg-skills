@@ -136,12 +136,12 @@ and checking the live site are not tasks: see **Shipping the milestone (coordina
 **Files:**
 - Modify: `GLOSSARY.md`
 
-- [ ] **Step 1: Convert the entries**
+- [x] **Step 1: Convert the entries**
 
-Run this from the repo root (the script is written to a scratch file, not the repo):
+Run this from the repo root (the script is written to an untracked scratch file, not committed):
 
 ```bash
-cat > /tmp/glossary_fix.py <<'EOF'
+mkdir -p target && cat > target/glossary_fix.py <<'EOF'
 import re, sys
 path = sys.argv[1]
 out = []
@@ -158,13 +158,17 @@ for line in open(path, encoding="utf-8").read().split("\n"):
         out.append(line)
 open(path, "w", encoding="utf-8").write("\n".join(out))
 EOF
-python3 -I /tmp/glossary_fix.py GLOSSARY.md
+python3 -I target/glossary_fix.py GLOSSARY.md
 ```
 
-- [ ] **Step 2: Check the result**
+- [x] **Step 2: Check the result**
 
 Run: `grep -c '^### ' GLOSSARY.md; grep -c '^: ' GLOSSARY.md; sed -n '1,25p' GLOSSARY.md`
-Expected: `14` headings, `0` definition lines, and an entry that looks like:
+Expected: `13` headings, `0` definition lines
+
+> **Corrected (issue #4), 2026-11-21.** The plan said 14 headings; `GLOSSARY.md` has 13 entries (the issue repeated the 14). The script now writes its helper to `target/glossary_fix.py` (untracked; do not commit it) instead of `/tmp`.
+
+The first entry should look like:
 
 ```markdown
 ### Brooke (`brooke-reviews[bot]`)
@@ -174,7 +178,7 @@ reviewer, named after my cat. ...
 **Adapt:** put your reviewer's login in the scripts' `bot=` line and your bot's
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add GLOSSARY.md
@@ -189,7 +193,7 @@ git commit -m "docs: use headings in the glossary so GitHub renders it"
 - Modify: `tools/skills.py`
 - Test: `tests/test_skills_tool.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_skills_tool.py`, before the `if __name__ == "__main__":` line:
 
@@ -246,18 +250,20 @@ class ReferenceTest(RepoTestCase):
 
 `test_writes_one_page_per_skill` pins only the skill pages, which is all this task produces. Task 3 replaces it with a test for the full page set, so every task's PR passes `just check` on its own.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `just test`
 Expected: FAIL with `AttributeError: module 'skills_tool' has no attribute 'reference_pages'` (and the same for `GENERATED_NOTE`).
 
-- [ ] **Step 3: Implement the helpers and skill pages**
+- [x] **Step 3: Implement the helpers and skill pages**
 
-In `tools/skills.py`, add `import html` and `import shutil` to the imports (keeping them alphabetical). Add this constant next to `SKILL_FILE`:
+In `tools/skills.py`, add `import html` to the imports (keeping it alphabetical). Add this constant next to `SKILL_FILE`:
 
 ```python
 AGENTS_DIR = "agents"
 ```
+
+> **Corrected (issue #5, 2026-11-21).** Task 2 no longer adds `import shutil`: nothing uses it until `write_reference` in Task 4, so Task 4's Step 3 adds it.
 
 Then add this block after the `write_files` function:
 
@@ -358,12 +364,14 @@ def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str,
     return dict(sorted(pages.items()))
 ```
 
-- [ ] **Step 4: Run the tests**
+> **Corrected (issue #7, 2026-11-21, review round 1).** `agent_page` above now rejects an agent `name` that fails `name_problem()`, because the name becomes a path under `agents/`. Its test is `test_agent_name_cannot_escape_the_output_directory`, added in Task 4.
+
+- [x] **Step 4: Run the tests**
 
 Run: `just test`
 Expected: `OK`, with every `ReferenceTest` test passing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/skills.py tests/test_skills_tool.py
@@ -378,7 +386,7 @@ git commit -m "feat(tools): generate reference pages for skills"
 - Modify: `tools/skills.py`
 - Test: `tests/test_skills_tool.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 In `ReferenceTest`, replace Task 2's `test_writes_one_page_per_skill` with a test for
 the full page set, now that plugin pages exist:
@@ -428,6 +436,13 @@ Then add these methods:
             pages["plugins/release-tools.md"],
         )
 
+    def test_demote_headings_tracks_fence_marker_and_length(self) -> None:
+        text = "````md\n```\n# literal\n```\n````\n## After\n~~~\n# tilde\n```\n# still tilde\n~~~\n# Out"
+        self.assertEqual(
+            skills.demote_headings(text),
+            "````md\n```\n# literal\n```\n````\n### After\n~~~\n# tilde\n```\n# still tilde\n~~~\n## Out",
+        )
+
     def test_duplicate_agent_names_are_an_error(self) -> None:
         agent = '---\nname: helper\ndescription: "Helps."\n---\n'
         self.write("plugins/release-tools/agents/helper.md", agent)
@@ -444,25 +459,40 @@ Then add these methods:
         self.assertIn("Intro.\n\n### Brooke\n\nA bot.", text)
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `just test`
 Expected: FAIL with `KeyError: 'plugins/release-tools.md'`, `KeyError: 'agents/helper.md'` and `KeyError: 'glossary.md'`, and an `AssertionError` from `test_writes_one_page_per_plugin_and_skill`, whose list now includes the plugin pages.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `tools/skills.py`, add these functions above `reference_pages`:
 
+> **Corrected (issue #6, 2026-11-21).** `demote_headings` tracks the opening fence's character and length and closes only on a matching fence with nothing after it, so nested or mixed fences (a triple-backtick line inside a four-backtick block, `~~~` inside a backtick block) keep their headings. `test_demote_headings_tracks_fence_marker_and_length` covers it.
+
 ```python
 def demote_headings(markdown: str) -> str:
-    """Moves every Markdown heading down one level, leaving fenced code alone."""
+    """Moves every Markdown heading down one level, leaving fenced code alone.
+
+    A fence closes only on a line of the opener's character, at least as long as the
+    opener, with nothing after it, so other fence-like lines inside it stay code.
+    """
     lines: list[str] = []
-    fenced = False
+    opener: tuple[str, int] | None = None
     for line in markdown.splitlines():
-        if line.lstrip().startswith(("```", "~~~")):
-            fenced = not fenced
-        elif not fenced and re.match(r"#{1,5} ", line):
-            line = "#" + line
+        fence = re.match(r" {0,3}(`{3,}|~{3,})(.*)$", line)
+        if opener is None:
+            if fence and not (fence.group(1)[0] == "`" and "`" in fence.group(2)):
+                opener = (fence.group(1)[0], len(fence.group(1)))
+            elif re.match(r"#{1,5} ", line):
+                line = "#" + line
+        elif (
+            fence
+            and fence.group(1)[0] == opener[0]
+            and len(fence.group(1)) >= opener[1]
+            and not fence.group(2).strip()
+        ):
+            opener = None
         lines.append(line)
     return "\n".join(lines)
 
@@ -517,7 +547,11 @@ def plugin_page(
 def agent_page(plugin: Plugin, path: Path, ctx: SiteContext, order: int) -> tuple[str, str]:
     """Returns an agent's name and its reference page."""
     front, rules = read_frontmatter(path)
-    name = str(front.get("name", path.stem))
+    name = front.get("name", path.stem)
+    problem = name_problem(name)
+    if problem:
+        raise ValueError(f"{path}: agent {problem}")
+    name = str(name)
     description = str(front.get("description", ""))
     source = f"{PLUGINS_DIR}/{plugin.name}/{AGENTS_DIR}/{path.name}"
     body = [
@@ -585,12 +619,12 @@ Then replace the body of `reference_pages` with:
     return dict(sorted(pages.items()))
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `just test`
 Expected: `OK`, with every `ReferenceTest` test passing, including `test_writes_one_page_per_plugin_and_skill`, which replaced Task 2's skills-only test.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/skills.py tests/test_skills_tool.py
@@ -605,7 +639,7 @@ git commit -m "feat(tools): generate plugin, agent and glossary reference pages"
 - Modify: `tools/skills.py`
 - Test: `tests/test_skills_tool.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `ReferenceTest`:
 
@@ -636,18 +670,25 @@ Add to `ReferenceTest`:
         self.assertTrue((out / "skills/semver-bump.md").is_file())
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `just test`
 Expected: FAIL with `AttributeError: ... no attribute 'write_reference'` and, for `test_main_reference`, an argparse error (exit 2: `invalid choice: 'reference'`).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
-Add after `reference_pages` in `tools/skills.py`:
+Add `import shutil` to the imports (after `import re`), then add after `reference_pages` in `tools/skills.py`:
 
 ```python
 def write_reference(out: Path, pages: dict[str, str]) -> None:
-    """Replaces `out` with exactly `pages`, if `out` is missing or was written by this tool."""
+    """Replaces `out` with exactly `pages`, if `out` is missing or was written by this tool.
+
+    Every page path must stay inside `out`; this is checked before anything is deleted.
+    """
+    base = out.resolve()
+    for rel in pages:
+        if not (base / rel).resolve().is_relative_to(base) or Path(rel).is_absolute():
+            raise ValueError(f"page path {rel!r} is outside {out}; refusing to write")
     if out.exists():
         foreign = not out.is_dir() or (
             any(out.iterdir()) and not (out / GENERATED_MARKER).is_file()
@@ -659,13 +700,14 @@ def write_reference(out: Path, pages: dict[str, str]) -> None:
             )
         shutil.rmtree(out)
     out.mkdir(parents=True)
+    # The marker goes first, so a failed page write still leaves a directory a retry may replace.
+    (out / GENERATED_MARKER).write_text(
+        "Written by tools/skills.py reference. Safe to delete.\n", encoding="utf-8"
+    )
     for rel, text in pages.items():
         target = out / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding="utf-8")
-    (out / GENERATED_MARKER).write_text(
-        "Written by tools/skills.py reference. Safe to delete.\n", encoding="utf-8"
-    )
 ```
 
 In `main`, register the subcommand after the `generate` parser:
@@ -697,17 +739,25 @@ Also update the module docstring's usage block with one line:
     uv run --script tools/skills.py reference --out DIR --repo OWNER/NAME --url-prefix PATH
 ```
 
-- [ ] **Step 4: Run the full check**
+- [x] **Step 4: Run the full check**
 
 Run: `just check`
-Expected: validation `ok`, generated files current, mypy prints nothing, and the tests end `OK` (33 tests).
+Expected: validation `ok`, generated files current, mypy prints nothing, and the tests end `OK` (40 tests).
 
-- [ ] **Step 5: Try it on the real repo**
+> **Corrected (issue #7, 2026-11-21).** The count is 40, not 33: Task 3 gained a test for fence handling (`test_demote_headings_tracks_fence_marker_and_length`), so 31 tests precede Task 4, which adds the three above plus six from review: `test_write_failure_midway_leaves_output_that_can_be_replaced`, `test_agent_name_cannot_escape_the_output_directory`, `test_write_refuses_paths_outside_the_output_before_deleting`, `test_main_reference_reports_a_foreign_output_directory`, `test_main_reference_reports_a_malformed_agent` and `test_main_reference_reports_a_write_failure` (in the repository, via `run_main` and `reference_args` helpers).
+
+> **Corrected (issue #7, 2026-11-21, review round 1).** `agent_page` (Task 3) now validates the agent's `name` with `name_problem()` and raises `ValueError`, and `write_reference` refuses any page path that resolves outside `out` before deleting anything. An agent name such as `../../README` would otherwise have written outside the output directory. Both code blocks in this plan are updated.
+
+> **Corrected (issue #7, 2026-11-21, review round 2).** `write_reference` now writes the `.generated` marker right after recreating `out`, before any page. Otherwise a page write that failed after the old output was deleted left a directory with no marker, and every retry refused it as foreign. The Task 4 code block above is updated.
+
+- [x] **Step 5: Try it on the real repo**
 
 Run: `uv run --quiet --script tools/skills.py reference --out /tmp/pgref --repo PeterGrace/pg-skills --url-prefix /pg-skills/reference && ls -R /tmp/pgref | head -40 && sed -n '1,30p' /tmp/pgref/agents/issue-implementer.md`
-Expected: `wrote 24 reference pages` (4 plugins, 18 skills, 1 agent, 1 glossary), files under `plugins/`, `skills/`, `agents/`, and an agent page whose table says ``| Subagent type | `github-workflows:issue-implementer` |``. Then `rm -r /tmp/pgref`. If the count differs, check that every catalog skill has a page before going on.
+Expected: `wrote 24 reference pages` (4 plugins, 18 skills, 1 agent, 1 glossary), files under `plugins/`, `skills/`, `agents/`, and an agent page whose table says ``| Subagent type | `github-workflows:issue-implementer` |``. Then `rm -r /tmp/pgref`.
 
-- [ ] **Step 6: Correct the spec**
+> **Corrected (issue #7, 2026-11-21).** Write the trial output under the worktree's ignored `target/` rather than `/tmp`, never into `site/`. If the count differs, check that every catalog skill has a page before going on.
+
+- [x] **Step 6: Correct the spec**
 
 In `docs/superpowers/specs/2026-11-21-workflow-site-design.md`, the generated pages
 moved (see "Simplifications and deviations" above):
@@ -724,7 +774,7 @@ moved (see "Simplifications and deviations" above):
 Run: `grep -n 'generated/' docs/superpowers/specs/2026-11-21-workflow-site-design.md`
 Expected: no output.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tools/skills.py tests/test_skills_tool.py docs/superpowers/specs/2026-11-21-workflow-site-design.md
@@ -739,7 +789,7 @@ git commit -m "feat(tools): add the reference command for the docs site"
 - Create: `site/package.json`, `site/package-lock.json`, `site/astro.config.mjs`, `site/src/content.config.ts`, `site/tsconfig.json`, `site/src/content/docs/index.mdx`
 - Modify: `.gitignore`, `justfile`
 
-- [ ] **Step 1: Create `site/package.json`**
+- [x] **Step 1: Create `site/package.json`**
 
 ```json
 {
@@ -755,12 +805,12 @@ git commit -m "feat(tools): add the reference command for the docs site"
 }
 ```
 
-- [ ] **Step 2: Install the pinned dependencies**
+- [x] **Step 2: Install the pinned dependencies**
 
 Run: `cd site && npm install --save-exact astro@7.4.13 @astrojs/starlight@0.43.1 starlight-links-validator@0.27.0 sharp@0.35.5 && cd ..`
 Expected: `site/package-lock.json` is created, and `site/package.json` gains a `dependencies` block with those four exact versions (no `^`).
 
-- [ ] **Step 3: Create `site/tsconfig.json`**
+- [x] **Step 3: Create `site/tsconfig.json`**
 
 ```json
 {
@@ -770,7 +820,7 @@ Expected: `site/package-lock.json` is created, and `site/package.json` gains a `
 }
 ```
 
-- [ ] **Step 4: Create `site/src/content.config.ts`**
+- [x] **Step 4: Create `site/src/content.config.ts`**
 
 ```ts
 import { defineCollection } from 'astro:content';
@@ -782,7 +832,7 @@ export const collections = {
 };
 ```
 
-- [ ] **Step 5: Create `site/astro.config.mjs`**
+- [x] **Step 5: Create `site/astro.config.mjs`**
 
 ```js
 // @ts-check
@@ -796,9 +846,13 @@ const docs = new URL('./src/content/docs/', import.meta.url);
 
 // The reference section is generated by `just site-gen` (tools/skills.py reference).
 const reference = [
-	{ label: 'Plugins', autogenerate: { directory: 'reference/plugins' } },
-	{ label: 'Skills', collapsed: true, autogenerate: { directory: 'reference/skills' } },
-	{ label: 'Agents', autogenerate: { directory: 'reference/agents' } },
+	{ label: 'Plugins', items: [{ autogenerate: { directory: 'reference/plugins' } }] },
+	{
+		label: 'Skills',
+		collapsed: true,
+		items: [{ autogenerate: { directory: 'reference/skills' } }],
+	},
+	{ label: 'Agents', items: [{ autogenerate: { directory: 'reference/agents' } }] },
 	{ label: 'Glossary', slug: 'reference/glossary' },
 ];
 
@@ -832,7 +886,13 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 6: Create `site/src/content/docs/index.mdx`**
+> **Corrected (issue #8, 2026-11-21).** The three reference groups above originally put
+> `autogenerate` beside `label` (and `collapsed`). Starlight 0.39.0 removed that form, so the
+> build failed with "Unrecognized key". Each group now has an `items` array holding the
+> `autogenerate` object, as the "Verified facts" section describes. Tasks 6, 8 and 9 don't
+> reference the sidebar config, so nothing else changes.
+
+- [x] **Step 6: Create `site/src/content/docs/index.mdx`**
 
 ```mdx
 ---
@@ -882,7 +942,7 @@ The names in these skills are mine: my review bot, my servers, my projects. The
 the skills fit your setup.
 ```
 
-- [ ] **Step 7: Ignore build output and generated pages**
+- [x] **Step 7: Ignore build output and generated pages**
 
 Append to `.gitignore`:
 
@@ -893,7 +953,7 @@ site/.astro/
 site/src/content/docs/reference/
 ```
 
-- [ ] **Step 8: Add the recipes**
+- [x] **Step 8: Add the recipes**
 
 Append to `justfile`:
 
@@ -913,22 +973,22 @@ site-build: site-gen
     cd site && npm ci && npm run build
 ```
 
-- [ ] **Step 9: Build it**
+- [x] **Step 9: Build it**
 
 Run: `bash -o pipefail -c 'just site-build 2>&1 | tail -15'`
 The command must exit 0. `pipefail` makes a failed build fail the command, where a bare `| tail` would report `tail`'s success.
 Expected: `wrote 24 reference pages`, then Astro's build log reporting the pages it built (the 24 reference pages, the home page and a 404 page), the links validator reporting `All internal links are valid.`, and no errors.
 
-- [ ] **Step 10: Look at it**
+- [x] **Step 10: Look at it**
 
 Run: `cd site && npx astro preview --port 4321 &` then open `http://localhost:4321/pg-skills/`. Check that the home page cards link to plugin pages, the sidebar shows only a Reference section (with Plugins, Skills, Agents and Glossary), and `/pg-skills/reference/agents/issue-implementer/` shows the standing rules with `###` headings under "Standing rules". Stop the preview with `kill %1` (or the PID it printed).
 
-- [ ] **Step 11: Make sure generated pages aren't tracked**
+- [x] **Step 11: Make sure generated pages aren't tracked**
 
 Run: `git status --short`
 Expected: `site/` shows `package.json`, `package-lock.json`, `astro.config.mjs`, `tsconfig.json` and `src/content.config.ts` and `src/content/docs/index.mdx`. Nothing under `site/src/content/docs/reference/`, `site/dist/` or `site/node_modules/`.
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 
 ```bash
 git add .gitignore justfile site/package.json site/package-lock.json site/tsconfig.json \
@@ -943,7 +1003,9 @@ git commit -m "feat(site): add the Starlight site with a generated reference sec
 **Files:**
 - Create: `.github/workflows/pages.yml`
 
-- [ ] **Step 1: Create the workflow**
+> **Corrected (issue #9, 2026-11-21).** The `concurrency` block moved from the workflow level to the `deploy` job, as below. A workflow-level group made pull request builds share it with production deployments, so a PR update could replace a queued `main` deployment (GitHub keeps one running and one pending run per group). `.github/workflows/pages.yml` is the shipped file.
+
+- [x] **Step 1: Create the workflow**
 
 ```yaml
 # Builds the documentation site on every relevant PR and push; deploys it from main.
@@ -962,11 +1024,6 @@ on:
 
 permissions:
   contents: read
-
-# One deployment at a time; a newer push replaces a queued one.
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   build:
@@ -998,6 +1055,12 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    # One deployment at a time; a newer push replaces a queued one. The group is on
+    # this job, not the workflow: pull request builds must not share it, or a PR run
+    # could displace a queued deployment from main.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -1006,12 +1069,12 @@ jobs:
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 ```
 
-- [ ] **Step 2: Check the YAML parses**
+- [x] **Step 2: Check the YAML parses**
 
 Run: `uv run --quiet --no-project --with pyyaml python -c "import yaml,sys; yaml.safe_load(open('.github/workflows/pages.yml')); print('ok')"`
 Expected: `ok`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/pages.yml
@@ -1025,7 +1088,7 @@ git commit -m "ci: build the docs site and deploy it to GitHub Pages"
 **Files:**
 - Modify: `.github/workflows/ci.yml` (the `Tag the next patch version and publish it` step)
 
-- [ ] **Step 1: Add the skip**
+- [x] **Step 1: Add the skip**
 
 In `.github/workflows/ci.yml`, replace:
 
@@ -1043,20 +1106,29 @@ with:
             next=v0.1.0
           else
             # Releases are for skills. Skip when only the docs site or docs/ changed.
-            if ! git diff --name-only "$latest" "$GITHUB_SHA" | grep -qvE '^(site|docs)/'; then
+            # NUL-delimited, so git doesn't quote unusual filenames (non-ASCII, tabs).
+            # Write the diff to a file first: piping it into `grep -q` makes git die of
+            # SIGPIPE when grep exits early, and `pipefail` then reads that as docs-only.
+            changed=$(mktemp)
+            git diff --name-only --no-renames -z "$latest" "$GITHUB_SHA" > "$changed"
+            status=0
+            grep -qzvP '\A(site|docs)/' "$changed" || status=$?
+            if [ "$status" -eq 1 ]; then
               echo "Only site/ and docs/ changed since $latest; not releasing"; exit 0
+            elif [ "$status" -ne 0 ]; then
+              echo "Could not classify the changed paths (grep exit $status)" >&2; exit "$status"
             fi
             IFS=. read -r major minor patch <<< "${latest#v}"
 ```
 
 Also update the header comment's second paragraph to say: "Every push to main that changes more than `site/` and `docs/` is a release."
 
-- [ ] **Step 2: Test the condition locally**
+- [x] **Step 2: Test the condition locally**
 
 Run:
 
 ```bash
-decide() { if ! printf '%s' "$1" | command grep -qvE '^(site|docs)/'; then echo skip; else echo release; fi; }
+decide() { if ! printf '%s' "$1" | tr '\n' '\0' | command grep -qzvP '\A(site|docs)/'; then echo skip; else echo release; fi; }
 echo "docs only:   $(decide $'site/a.md\ndocs/b.md\n')"
 echo "mixed:       $(decide $'site/a.md\ntools/skills.py\n')"
 echo "near miss:   $(decide $'sites/a.md\n')"
@@ -1067,7 +1139,39 @@ tags exist. It uses `command grep` because a Claude Code shell may wrap `grep` i
 ugrep, which treats `-qv` differently and reports `skip` for the mixed case. CI runs
 GNU grep, which the step's `grep` means. Expected: `docs only: skip`, `mixed: release`, `near miss: release`.
 
-- [ ] **Step 3: Commit**
+> **Corrected (issue #10, 2026-11-21).** The original step ran `git diff --name-only`
+> into `grep -qvE '^(site|docs)/'`. With the default `core.quotePath`, git quotes
+> non-ASCII, tab and `"` filenames (`"docs/caf\303\251.md"`), which begin with a quote
+> and so counted as outside `docs/`, releasing on a docs-only change. The step now uses
+> `git diff --name-only --no-renames -z` with `grep -qzvP '\A(site|docs)/'`, and the fixed-input
+> check above feeds the same NUL-delimited form. To exercise git's real output, also run:
+>
+> ```bash
+> t=$(mktemp -d) && git -C "$t" init -q && cd "$t" && mkdir docs && echo a > README &&
+>   git add . && git -c user.name=t -c user.email=t@example.com commit -qm a && git tag v0.1.0 &&
+>   echo x > "docs/café.md" && git add -A && git -c user.name=t -c user.email=t@example.com commit -qm b &&
+>   git diff --name-only --no-renames -z v0.1.0 HEAD | command grep -qzvP '\A(site|docs)/' && echo release || echo skip
+> ```
+>
+> Expected: `skip`.
+>
+> `--no-renames` is needed because rename detection lists only the destination: moving a
+> shipped file from `plugins/` to `docs/` would otherwise look docs-only. In the same
+> temporary repository, `git mv plugins/p/ref.md docs/ref.md` committed on top of a
+> tagged commit must print `release`.
+
+> **Corrected (issue #26, 2026-11-21).** The step above no longer pipes `git diff` into
+> `grep -q`. Actions runs `run:` steps under `bash -e -o pipefail`; `grep -q` exits at the
+> first non-docs path, so on a list longer than a pipe buffer `git diff` dies of SIGPIPE,
+> the pipeline fails, and `!` read that as "docs-only", skipping the release for a large
+> mixed change. A failing `git diff` was misread the same way. The step now writes the diff
+> to a file (a git failure fails the step under `-e`), runs `grep` on the file, and treats
+> only grep's exit 1 as docs-only; any other nonzero exit fails the step. The regression
+> test `tests/test_release_step.py` (part of `just check`) runs the step's real script,
+> read from `ci.yml`, against fake `git` and `gh` commands. The fixed-input check in Step 2
+> still shows the predicate's classification, but only that test covers pipe behaviour.
+
+- [x] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/ci.yml
@@ -1081,7 +1185,7 @@ git commit -m "ci: don't cut a release when only site/ or docs/ changed"
 **Files:**
 - Modify: `README.md`, `plugins/skill-authoring/skills/authoring-skills/SKILL.md`, `catalog.yaml` (and the regenerated manifests)
 
-- [ ] **Step 1: README**
+- [x] **Step 1: README**
 
 Under the first paragraph of `README.md`, add:
 
@@ -1102,9 +1206,13 @@ And add a section before "Releases":
 ## The documentation site
 
 ```
-just site-dev     # preview at http://localhost:4321/pg-skills/
-just site-build   # what CI runs: generate the reference, build, check every link
+(cd site && npm ci)   # once per checkout: install the site's dependencies (needs Node and npm)
+just site-dev         # preview at http://localhost:4321/pg-skills/
+just site-build       # what CI runs: install, generate the reference, build, check every link
 ```
+
+`just site-dev` doesn't install dependencies; `just site-build` does (`npm ci`), so
+running it once also works.
 
 The reference pages are written by `tools/skills.py reference` from `catalog.yaml`,
 each `SKILL.md`, each plugin's `agents/` and `GLOSSARY.md`, so they never need a
@@ -1112,7 +1220,11 @@ hand edit. Pushes to `main` that touch the site, the skills or the tooling redep
 it. Changes only under `site/` or `docs/` don't cut a release.
 ````
 
-- [ ] **Step 2: The authoring skill**
+> **Corrected (issue #11, 2026-11-21).** The README section also carries an `npm ci` line before
+> `just site-dev`: `site-dev` doesn't install dependencies, so a fresh checkout failed with
+> `astro: command not found` (review of PR #23). Read `README.md` for the shipped text.
+
+- [x] **Step 2: The authoring skill**
 
 In `plugins/skill-authoring/skills/authoring-skills/SKILL.md`, at the end of the "5. Regenerate and check" bullet list, add:
 
@@ -1124,13 +1236,13 @@ In `plugins/skill-authoring/skills/authoring-skills/SKILL.md`, at the end of the
 
 In `catalog.yaml`, bump `skill-authoring`'s `version` from `0.1.1` to `0.1.2`.
 
-- [ ] **Step 3: Regenerate and check**
+- [x] **Step 3: Regenerate and check**
 
 Run: `just generate && just check && bash -o pipefail -c 'just site-build 2>&1 | tail -3'`
 The command must exit 0 (see Task 5 Step 9 on `pipefail`).
 Expected: `ok` from validation, `OK` from the tests, and a site build with valid links.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add README.md catalog.yaml plugins/skill-authoring .claude-plugin .github/plugin .agents .cursor-plugin
@@ -1146,26 +1258,26 @@ integration branch, and it ends with recorded evidence on that branch. Merging i
 `main` and checking the live site come after it, in **Shipping the milestone** below:
 the coordinator only starts those once this task has merged, so they can't be part of it.
 
-- [ ] **Step 1: Run the gates on the integration branch**
+- [x] **Step 1: Run the gates on the integration branch**
 
 Run: `rm -rf site/dist && just check && bash -o pipefail -c 'just site-build 2>&1 | tail -5'`
 The command must exit 0. Removing `site/dist` first means Step 2 can only see files this
 build wrote, and `pipefail` makes a failed build fail the command rather than reporting
 `tail`'s success.
-Expected: tests `OK` (33), `wrote 24 reference pages`, and a site build reporting
+Expected: tests `OK` (40), `wrote 24 reference pages`, and a site build reporting
 that every internal link is valid.
 
-- [ ] **Step 2: Check the built site**
+- [x] **Step 2: Check the built site**
 
 Run: `test -f site/dist/index.html && test -f site/dist/reference/skills/github-issue-to-pr/index.html && test -f site/dist/reference/agents/issue-implementer/index.html && test -f site/dist/reference/glossary/index.html && echo built`
 Expected: `built`.
 
-- [ ] **Step 3: Check Pages is set up**
+- [x] **Step 3: Check Pages is set up**
 
 Run: `gh api repos/PeterGrace/pg-skills/pages --jq '.build_type, .html_url'`
 Expected: `workflow` and `https://petergrace.github.io/pg-skills/`. Pages was enabled on 2026-11-21. If it isn't set up, stop and report: enabling it needs Peter's go-ahead.
 
-- [ ] **Step 4: Record the evidence**
+- [x] **Step 4: Record the evidence**
 
 Post the output of Steps 1-3 as a comment on this task's issue, then open the
 task's PR. It only changes the plan's own checkboxes, ticking Tasks 1-9, so it has
