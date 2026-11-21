@@ -280,6 +280,7 @@ to run `github-address-pr-review` once <reviewer> has reviewed.
 | Waiting for a sub-issue to auto-close | `Closes #N` doesn't fire on a non-default base. Close it yourself after the merge. |
 | Letting `main` drift from `<M>` for the whole milestone | Sync each hotfix into `<M>` through a sync PR, so the final merge holds no surprises. |
 | `git worktree remove` without `cargo clean` first | The worktree's build directory under `~/.cache/cargo-build/` is left behind, 30-47 GiB per agent worktree. Clean first (step 9). To clean up after the fact, re-create the worktree at the same path, run `cargo clean` there, and remove it again. The build directory's hash depends only on the path. |
+| Writing "closes #N" or "doesn't close #N" in the milestone PR body | Any closing keyword before an issue number closes it on merge, negated or not, so the epic closes before the final audit. Leave the keywords out: "The epic stays open until the post-merge audit." |
 | Squash-merging the final PR | Use a merge commit: it keeps each PR's history and the claims ledger's commit anchors. |
 
 ## Finishing
@@ -297,6 +298,11 @@ After the last sub-issue merges into `<M>`:
    green on its head and `mergeStateStatus` `CLEAN`. Request a review only if
    the project's reviewer is wanted on milestone PRs, or the sync merges
    needed conflict resolution; the pieces were reviewed already.
+   **Keep closing keywords out of the body.** `close`, `closes`, `closed`, `fix`, `fixes`,
+   `fixed`, `resolve`, `resolves` and `resolved` followed by an issue number close that issue when the PR
+   merges into `main`, and negation doesn't stop it: "doesn't close #3" still closes
+   #3 (PR #25 closed epic #3 before the final audit ran). Write "The epic stays open
+   until the post-merge audit" and refer to issues as "epic #3" or "sub-issue #12".
 4. **The final merge.** Ask the user for the go-ahead (unless the standing
    authorization explicitly covers it), then run `gh pr merge <P> --merge`.
    Never squash or rebase this one.

@@ -108,7 +108,7 @@ The decisions taken while planning <held | changed: ...>. Divergences are record
 
 Follow-ups: <filed as #.. | listed in the changelog, not filed>.
 
-<Closing as complete. | Leaving open: <gaps>.>
+<Closing as complete. | Already closed by <PR or event>; this audit found it complete. | Already closed by <PR or event>, but this audit found gaps: <failed checkpoints>. The epic is not complete; whether to reopen it is for the owner to decide. | Leaving open: <gaps>.>
 ```
 
 ## 6. Act
@@ -116,6 +116,22 @@ Follow-ups: <filed as #.. | listed in the changelog, not filed>.
 - **Pre-merge mode:** post the comment, headed `Milestone <N> pre-merge
   audit`, and report "ready for main" or the gaps. Never close the epic in
   this mode; the coordinator opens the milestone PR.
+- **Final mode, the epic is already closed:** check first, with
+  `gh issue view <epic> --json state,closedAt,closedByPullRequestsReferences`.
+  If it is `CLOSED`, don't run `gh issue close` and don't write "Closing as
+  complete". Post the comment with the "Already closed by ..." line instead,
+  naming what closed it: the PR in `closedByPullRequestsReferences`, or, when
+  that is empty, the `closed` event in the issue timeline
+  (`gh api repos/<owner>/<repo>/issues/<epic>/timeline`). A PR body that said
+  "closes #N" (even "doesn't close #N") closes the epic when it merges, before
+  the final audit. Say so in the comment if that is what happened.
+  Which line to use depends on the audit verdict from steps 2-3, not on the
+  epic's state. If it validates, use "this audit found it complete". If it
+  doesn't, use the already-closed-with-gaps line: list the failed checkpoints,
+  don't say the epic is complete, and don't reopen the issue yourself. Post
+  the comment, then ask once whether to reopen it. An epic closed early by a
+  PR is exactly where gaps can still exist, and "never close an epic with an
+  unexplained gap" applies to one that someone else closed too.
 - **It validates, and closing is authorized:** post the comment, then run
   `gh issue close <epic> --reason completed`. Closing is authorized if the
   user asked for close-out, or if this skill was invoked as the last step of

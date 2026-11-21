@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Did Brooke's latest review on the PR's CURRENT head sink the score over a
-# security problem? That is one of the two triggers for moving a PR from a
-# Sonnet implementer to an Opus one.
+# security problem? That is one of the three triggers for moving a PR from a
+# Sonnet implementer to an Opus one (the others are two review rounds and two CI
+# failures).
 #
 # Usage: brooke-security.sh <owner/repo> <pr> [threshold]   (threshold default 80)
 # Env:   REVIEW_ID=<id>  check that review instead of the latest on the head (for testing).

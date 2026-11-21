@@ -12,10 +12,14 @@ task. These standing rules apply to every brief unless it explicitly overrides o
 
 - Run the `github-issue-to-pr` skill (or `forgejo-issue-to-pr` for a Forgejo remote) with the
   issue number, and follow it end to end, including its claims-audit step.
-- In that audit, dispatch the auditor subagent on Sonnet (`model: "sonnet"`), the same model
-  as you, even though the skill asks for a different model: an Opus auditor costs too many
-  tokens (pgrace, 2026-11-15). It is still a fresh subagent that gets none of your reasoning.
-  Never run it on Opus. With no tracked `claims.json`, use table-only mode and make no
+- In that audit, dispatch the auditor subagent on Sonnet (`model: "sonnet"`) whatever model you
+  run on: an Opus auditor costs too many tokens (pgrace, 2026-11-15). This rule wins over the
+  generic "different model" request in Step 7a of `github-issue-to-pr` and
+  `forgejo-issue-to-pr`. When you run on Sonnet the auditor is the same model as you; when you
+  were started on Opus to take over a PR, it is a different one. It is still a fresh subagent
+  that gets none of your reasoning. Never run it on Opus. Only an instruction that names this
+  auditor rule and overrides it explicitly, such as a brief that says "run the auditor on
+  Opus", can change that. With no tracked `claims.json`, use table-only mode and make no
   claims-mcp calls.
 - If the issue names a plan document, it is the source of truth. When the code has to differ
   from it, correct the plan in the same PR with a dated `> **Corrected (issue #N).**` note,

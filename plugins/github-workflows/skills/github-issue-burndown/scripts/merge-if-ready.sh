@@ -8,6 +8,7 @@ set -uo pipefail
 
 repo=${1:?usage: merge-if-ready.sh <owner/repo> <pr> [strategy] [--dry-run]}
 pr=${2:?}
+bot=brooke-reviews
 shift 2
 strategy=--merge; dry=
 for a in "$@"; do
@@ -34,8 +35,8 @@ unreplied=$(gh api graphql -F owner="$owner" -F name="$name" -F pr="$pr" -f quer
     pullRequest(number:$pr){reviewThreads(first:100){nodes{
       comments(first:100){nodes{author{login}}}}}}}}' \
   --jq '[.data.repository.pullRequest.reviewThreads.nodes[]
-         | select(.comments.nodes[0].author.login | startswith("brooke-reviews"))
-         | select([.comments.nodes[].author.login | select(startswith("brooke-reviews") | not)] | length == 0)]
+         | select(.comments.nodes[0].author.login | startswith("'"$bot"'"))
+         | select([.comments.nodes[].author.login | select(startswith("'"$bot"'") | not)] | length == 0)]
         | length')
 [ "$unreplied" = 0 ] || fail "$unreplied Brooke review thread(s) have no reply"
 

@@ -5,7 +5,9 @@
 # Usage: next-issue.sh <owner/repo> [label] [blocked-label]
 #        next-issue.sh --list <owner/repo> [label] [blocked-label]
 #   --list  print every candidate in pick order with its rank and where the
-#           rank came from (skips only the open-PR check), for reporting.
+#           rank came from, for reporting. It exits before the branch check, the
+#           open-PR check and the state re-check, so it can list an issue that
+#           has a branch or an open PR.
 #
 # Eligible: open, carries <label> (default "accepted"), does not carry
 # <blocked-label> (default "burndown-blocked"), is not an epic (has

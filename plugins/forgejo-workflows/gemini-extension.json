@@ -1,5 +1,5 @@
 {
   "name": "forgejo-workflows",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Issue-to-PR workflows on Forgejo through the forgejo-mcp server: planning features into issues, grooming and splitting issues, implementing an issue as a pull request, and walking through review comments. Its subagent fan-out uses the issue-implementer agent from github-workflows."
 }

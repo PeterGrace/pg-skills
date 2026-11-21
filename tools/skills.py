@@ -925,6 +925,11 @@ def install_rows(plugin: Plugin, catalog: Catalog, ctx: SiteContext) -> list[str
         f"`copilot plugin install {target}` |",
         f"| OpenAI Codex | `codex plugin marketplace add {ctx.repo}`, then install "
         f"`{plugin.name}` from `/plugins` |",
+        "| Cursor | No command-line install. On a Teams plan (one team marketplace) or an Enterprise "
+        f"plan (unlimited), import `{ctx.repo}` with *Import from Repo* under *Dashboard*, *Plugins & MCPs*, *Team "
+        "Marketplaces*; Cursor reads the repository's `.cursor-plugin/marketplace.json`, and "
+        f"members then find `{plugin.name}` in *Customize* "
+        "([Cursor's plugin docs](https://cursor.com/docs/plugins)) |",
         f"| Gemini CLI | `git clone {ctx.repo_url}.git`, then "
         f"`gemini extensions install ./{clone_dir}/plugins/{plugin.name}` |",
     ]
