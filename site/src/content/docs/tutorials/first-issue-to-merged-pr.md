@@ -73,12 +73,20 @@ test:
     python3 -m unittest -v
 JUST
 
+cat > .gitignore <<'IGNORE'
+__pycache__/
+*.py[cod]
+IGNORE
+
 just test
+git status --short
 git add . && git commit -m "Add greeter"
 gh repo create sandbox-greeter --private --source=. --push
 ```
 
-`just test` should print `OK`. Making the repository private keeps your sandbox out of
+`just test` should print `OK`. The `.gitignore` keeps Python's `__pycache__` out of the
+repository, so later test runs don't leave the working tree dirty. `git status --short`
+should list only `.gitignore`, `greeter.py`, `justfile` and `test_greeter.py`. Making the repository private keeps your sandbox out of
 sight, and you can delete it at the end.
 
 ## 3. File a tiny issue
