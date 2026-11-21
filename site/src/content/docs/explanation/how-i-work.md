@@ -33,7 +33,8 @@ I explain burndown [in its own section](#how-i-burn-down-a-backlog) below. I onl
 mention the claims audit that `github-issue-to-pr` runs before it opens a PR
 ([github-issue-to-pr](/pg-skills/reference/skills/github-issue-to-pr/); the audit needs
 [claims-audit](/pg-skills/reference/dependencies/#claims-audit) and, for ledger
-mode only, [claims-mcp](/pg-skills/reference/dependencies/#claims-mcp)), the study
+mode only, [claims-mcp](/pg-skills/reference/dependencies/#claims-mcp); [why I audit](/pg-skills/explanation/why-audit-claims/)
+and [how to run it](/pg-skills/how-to/validate-a-change/)), the study
 guides ([study-guides](/pg-skills/reference/plugins/study-guides/)) and the
 supporting setup (the [knowledge catalog](/pg-skills/reference/dependencies/#telekin), the model policy and the
 machine rules) on this page.

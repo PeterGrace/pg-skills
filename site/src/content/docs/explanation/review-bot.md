@@ -66,6 +66,8 @@ All three are on PRs in this repository, so you can see what a review looks like
 
 The Claims table in each review quotes a statement from the PR description and gives
 a verdict with evidence. That table is what catches an overclaiming description.
+The PR body has its own Claims table too, from
+[the audit before the PR opens](/pg-skills/explanation/why-audit-claims/).
 
 ## The milestone PR gets its own review
 
