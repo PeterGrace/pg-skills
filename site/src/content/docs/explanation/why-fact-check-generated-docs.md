@@ -31,7 +31,7 @@ There are three skills, and each one hands its output to the next.
    `docs/study-guide/`: an architecture overview, a deep dive per module, a glossary and
    the flashcards, with an index that gathers every open question in one checklist.
 2. **Check.** [`study-guide-fact-check`](/pg-skills/reference/skills/study-guide-fact-check/)
-   reads the guide as untrusted, tries to disprove each claim against the code, and
+   reads the guide as untrusted, tries to disprove each claim about what the code does, and
    writes its findings under `docs/study-guide/fact-check/`. It proposes corrections and
    doesn't apply them. The skill says why: silently editing the docs "would erase the
    audit trail".
@@ -43,7 +43,7 @@ There are three skills, and each one hands its output to the next.
 
 The code is the arbiter in the last step, not the fact-check report. The reconcile skill
 points out that the report "is still a model and still fallible", so it re-checks each
-finding against the source before it edits anything. Sometimes the original guide was
+finding it plans to act on against the source before it edits anything. Sometimes the original guide was
 right and the finding was wrong, and the skill treats that as a valid outcome.
 
 ## Why not trust the first draft
@@ -85,25 +85,23 @@ This is a different reason from the one in my PR audits. There, my `issue-implem
 agent runs the auditor on Sonnet, the same model as the implementer, to save tokens, and
 the independence comes from a fresh context
 ([Why audit claims](/pg-skills/explanation/why-audit-claims/#what-gates-miss) has the
-detail). For study guides, the skill's argument is about shared blind spots, and I
-follow what the skill says.
+detail). For study guides, the skill's argument is about shared blind spots.
 
 ## How I finish a guide that has open findings
 
 It depends on the situation. I either use the guide as it is, with the deferred items
 still flagged, or I resolve them, now or later.
 
-Using it as it is works because reconcile leaves a deferred finding in the guide as a
-flagged open question, and lists it in `RECONCILIATION.md` with the reason it was
-deferred. The guide is usable before every finding is settled, and a reader can see which
+Using it as it is works because reconcile keeps or sharpens the open-question flag on a
+deferred finding, and records in `RECONCILIATION.md` why it was deferred and how it was
+left in the guide. The guide is usable before every finding is settled, and a reader can see which
 parts aren't.
 
 To resolve them, I need an answer the code can't give: a domain fact, or something about
 an external system. The reconcile skill honors a human's decision written into the review
 files, as accepted, rejected or an answer to the question. It ranks that above its own
 re-check. A later reconcile run then applies the answer and cites the person rather than
-the code. Whether I do that straight away or when I next need the guide depends on what
-I'm using it for.
+the code. Which of these I do depends on the situation.
 
 Once the edits are substantial, the skill recommends fact-checking the revised guide
 again, because a correction can introduce a new error. It doesn't start that run itself.

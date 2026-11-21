@@ -74,8 +74,8 @@ annotation's format, so write it where a reader of the finding will see it.
 ## Reconcile the findings
 
 1. Ask for it, for example: "Reconcile the fact-check findings into the study guide."
-   Any model can run it. The skill re-checks every finding against the code before it
-   edits anything, so it doesn't take the report on trust. If you'd like to approve
+   The skill doesn't require a particular model. It re-checks each finding it plans to act
+   on against the code before it edits anything, so it doesn't take the report on trust. If you'd like to approve
    changes first, ask for a review gate: it then writes the reconciliation report as a
    proposal and leaves the guide untouched.
 2. Let it gather and triage. It reads `SUMMARY.md` and every `*.review.md`, then sorts
@@ -95,7 +95,7 @@ annotation's format, so write it where a reader of the finding will see it.
 4. Read the report it writes at `docs/study-guide/fact-check/RECONCILIATION.md`. It has
    a count per outcome, then a section each for Applied, Reframed, Deferred and
    Rejected, plus the flashcards it changed and a recommended next step. Every finding
-   from the fact-check appears under exactly one outcome, so compare it against
+   from the fact-check is meant to appear under exactly one outcome, so compare it against
    `SUMMARY.md` to confirm that none was dropped.
 5. Take the recommendation. If the edits were substantial, the skill recommends running
    the fact-check again on the revised guide, since a correction can add a new error.
@@ -105,8 +105,9 @@ annotation's format, so write it where a reader of the finding will see it.
 
 Deferred findings are the ones the code couldn't settle: domain or business claims,
 external systems, the report's items for a subject-matter expert, and disagreements
-between the guide and the report that the code doesn't resolve. Each is in the guide as a
-flagged open question and in `RECONCILIATION.md` with the reason it was deferred.
+between the guide and the report that the code doesn't resolve. Reconcile keeps or sharpens the open-question
+flag where the guide has one, and `RECONCILIATION.md` records why each was deferred and how
+it was left.
 
 You have two choices, and which one is right depends on the situation.
 

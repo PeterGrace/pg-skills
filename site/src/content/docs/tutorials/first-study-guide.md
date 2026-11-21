@@ -34,10 +34,9 @@ a Python library for signing data so that it can be passed through untrusted pla
 as a cookie or a URL. I chose it because:
 
 - it's public and under a permissive license, so you can clone it without an account;
-- it's small: about 1,200 lines of Python in seven modules under `src/itsdangerous/`,
-  few enough that the skill produces a guide in one session without asking you to pick
-  what to cover. The skill asks which areas to prioritize when a codebase has more than
-  about 10 to 15 modules;
+- it's small: about 1,200 lines of Python in `__init__.py` and seven modules under `src/itsdangerous/`,
+  few enough to cover in one session. For a codebase with more than about 10 to 15
+  modules the skill asks which areas to prioritize, or works entry-point-first;
 - it has a tagged release, `2.2.0`, so you can check out the same code every time and
   your guide describes the same commit as the one in this tutorial;
 - it already has a `docs/` folder, so you see the skill nest its output under
@@ -90,8 +89,8 @@ The skill works in phases and in order, and you'll see each of them.
    point is its public interface, which `src/itsdangerous/__init__.py` re-exports. It
    notes the tests and the existing `docs/`. It doesn't read every file yet.
 2. **Plan and scope.** It lists the modules it found, each with a path and a one-line
-   guess at its job. With about seven, it should go straight on. If it does ask what to
-   prioritize, answer "all of them".
+   guess at its job. The skill confirms the scope before it writes the deep dives. If it
+   asks what to prioritize, answer "all of them".
 3. **Architecture overview.** It writes `00-architecture-overview.md`, built around a
    real walk of one primary path through the code, with file references at each step.
 4. **Module deep dives.** One document per module, written one module at a time.
@@ -154,8 +153,8 @@ Look at what it wrote:
 find docs/study-guide/fact-check -type f | sort
 ```
 
-There is a `SUMMARY.md` and one `.review.md` file for each doc, in the same layout as the
-guide. Open `SUMMARY.md`. Read the provenance section, the totals by severity, and the
+There is a `SUMMARY.md` and a `.review.md` file for each doc it reviewed, in the same layout as
+the guide. Open `SUMMARY.md`. Read the provenance section, the totals by severity, and the
 list under *Fix these first (Critical)*. Then open one `.review.md` and read a finding.
 It has a verdict, a severity, the claim, the evidence (a file and symbol) and a suggested
 correction. The review also lists a few spot-checks it verified.
@@ -185,7 +184,7 @@ You should see the skill:
 6. suggest a re-check if the edits were substantial.
 
 Now check its work. Open `RECONCILIATION.md`. The summary table counts the findings per
-outcome. Compare the total with the findings in `SUMMARY.md`. The report is supposed to
+outcome. Compare the total with the findings in `SUMMARY.md`. The report is meant to
 account for every finding under exactly one outcome.
 
 Then find the revision lines:
@@ -197,8 +196,8 @@ grep -rn "Revised by study-guide-reconcile" docs/study-guide
 Open one entry under *Applied*. It has what the guide said before, what it says now and
 a *Confirmed by* line with a file and symbol. Open that file in `src/itsdangerous/` and
 check the claim yourself. This is the habit the loop is for. If there are any entries
-under *Deferred*, find the matching open question in the guide: it should still be there,
-flagged, and the report says why it wasn't resolved.
+under *Deferred*, find the matching open question in the guide. The report says why it wasn't
+resolved and how it was left in the guide.
 
 ## 6. Decide whether to check again
 
