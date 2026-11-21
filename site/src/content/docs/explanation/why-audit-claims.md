@@ -62,7 +62,7 @@ and it was not implemented, and was only found when I used claims-mcp/claims-aud
 find it."
 
 This is the origin story for two of my checking loops: auditing claims, which this
-page is about, and fact-checking generated docs.
+page is about, and [fact-checking generated docs](/pg-skills/explanation/why-fact-check-generated-docs/).
 
 ## Ledger mode or table-only mode
 
@@ -129,7 +129,10 @@ were statements about it.
 
 Outside pull requests, I use `claims-audit` on two things:
 
-- **Generated docs.** Study guides, and the pages of this site.
+- **Generated docs.** Study guides, and the pages of this site. Study guides also
+  have a write, fact-check and reconcile loop of their own, which
+  [Why I fact-check generated docs](/pg-skills/explanation/why-fact-check-generated-docs/)
+  describes.
 - **Agent outputs.** Checking that a long agent task did everything its brief asked.
 
 The [how-to for auditing outside a PR](/pg-skills/how-to/audit-an-artifact/) has the
