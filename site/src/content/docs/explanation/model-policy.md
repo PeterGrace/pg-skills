@@ -16,8 +16,8 @@ The [`issue-implementer`](/pg-skills/reference/agents/issue-implementer/) agent 
 `model: sonnet` in its definition. The coordinator skills,
 [`github-epic-to-merged-prs`](/pg-skills/reference/skills/github-epic-to-merged-prs/)
 and [`github-issue-burndown`](/pg-skills/reference/skills/github-issue-burndown/), tell
-the session to start implementers that way: "Always start on Sonnet: leave `model` off
-the call." Opus is for taking over a PR, never a first attempt, "however subtle the
+the session to start implementers that way. The epic skill says "Always start on
+Sonnet: leave `model` off the call." Opus is for taking over a PR, never a first attempt, "however subtle the
 sub-issue looks."
 
 Opus takes over a PR from its Sonnet implementer only on one of three triggers:

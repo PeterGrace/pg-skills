@@ -41,8 +41,10 @@ The agent definition handles this three ways:
   and `nice` and `ionice` lower its CPU and I/O priority.
 - A fresh worktree's first build is cold, so any cargo build the agent runs itself
   gets `--jobs 4`.
-- The agent never runs the kind smoke test locally, because it takes about 40
-  minutes. CI runs it nightly (pgrace, 2026-11-15).
+- The agent doesn't run the kind smoke test locally, because it takes about 40
+  minutes. The one exception is an issue about the Helm chart, the images or cluster
+  behaviour, and then only when the brief asks for it. CI runs it nightly (pgrace,
+  2026-11-15).
 
 The coordinators add their own limits. In the epic skill, parallel issues start only
 when they touch different files, and the plan's Files lists say which. The burndown

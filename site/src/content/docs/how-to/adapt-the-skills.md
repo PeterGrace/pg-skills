@@ -66,8 +66,8 @@ Three things in the skills are specific to Brooke.
      reviewer has no such section, decide the security trigger yourself. It is one of the
      three in [the model policy](/pg-skills/explanation/model-policy/).
    - Change the wording in the skill text as well. `forgejo-address-pr-review` names
-     `brooke-reviews[bot]` in its comment filter, and the burndown skill's description
-     names her.
+     `brooke-reviews[bot]` in a rule that her comments must not be filtered out of the
+     walk, and the burndown skill's description names her.
 
 If you have no bot, you can run without the scripts. The glossary's line is to review
 the PRs yourself where the skills wait for Brooke. In the epic skill, the review
@@ -148,9 +148,8 @@ Differences from the GitHub skills:
 - **It needs `forgejo-mcp`, not `gh`.** The skills read and file issues and PRs
   through the `forgejo` MCP tools, and parse the host, owner and repo from your
   git remote.
-- **`forgejo-address-pr-review` has the same Brooke wording** as the GitHub scripts: it
-  never filters `brooke-reviews[bot]` out of the walk. Change that to your bot, as
-  above.
+- **`forgejo-address-pr-review` names Brooke.** It has a rule never to filter
+  `brooke-reviews[bot]` out of the walk. Change the name to your bot, or drop the rule.
 
 `forgejo-issue-to-pr` also needs [just](/pg-skills/reference/dependencies/#just) and
 [claims-audit](/pg-skills/reference/dependencies/#claims-audit), and can use
