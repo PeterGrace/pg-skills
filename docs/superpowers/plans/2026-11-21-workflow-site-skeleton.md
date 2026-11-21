@@ -1,0 +1,1083 @@
+# Workflow Site Skeleton Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Ship Phase 1 of `docs/superpowers/specs/2026-11-21-workflow-site-design.md`: an Astro Starlight site for `PeterGrace/pg-skills` on GitHub Pages, with a home page and a reference section generated from the repository. Docs-only pushes must not cut skills releases.
+
+**Architecture:** `tools/skills.py` gains a `reference` subcommand. It reuses the catalog validation and writes Starlight Markdown pages (plugins, skills, agents, glossary) into `site/src/content/docs/reference/`, which is gitignored and rebuilt on every build. `site/` is a stock Starlight project whose sidebar shows a Diataxis section only once its folder exists. `.github/workflows/pages.yml` builds it with `just site-build` and deploys it with GitHub's Pages actions. `ci.yml`'s release job skips tagging when only `site/` or `docs/` changed.
+
+**Tech Stack:** Python 3.11+ with PyYAML (run through uv), Astro 7.4.13, @astrojs/starlight 0.43.1, starlight-links-validator 0.27.0, sharp 0.35.5, Node 24, just, GitHub Actions.
+
+**Spec deviation (deliberate):** the spec puts generated pages in `reference/generated/`. A nested folder would add a "generated" level to the sidebar, so they go directly in `reference/` instead (the whole section is generated anyway). URLs are `/pg-skills/reference/<plugins|skills|agents>/<name>/` and `/pg-skills/reference/glossary/`.
+
+**Rules for anyone executing this plan:** never put hostnames, IP addresses, internal URLs, or private repository names in any file or commit message. The public names already approved for this repo (`PeterGrace/pg-skills`, Brooke, Peter Grace) are fine. Pass this rule on to any subagent you dispatch.
+
+---
+
+## File structure
+
+| Path | Responsibility |
+|---|---|
+| `GLOSSARY.md` | Modify: definition-list syntax to headings, so GitHub and Starlight both render it |
+| `tools/skills.py` | Modify: add the `reference` subcommand and its page builders |
+| `tests/test_skills_tool.py` | Modify: tests for the reference pages and writer |
+| `site/package.json`, `site/package-lock.json` | Create: the site's pinned dependencies |
+| `site/astro.config.mjs` | Create: site URL and base, Starlight config, sidebar |
+| `site/src/content.config.ts` | Create: Starlight's docs collection |
+| `site/tsconfig.json` | Create: Astro's strict TypeScript config |
+| `site/src/content/docs/index.mdx` | Create: home page |
+| `.gitignore` | Modify: ignore site build output and generated reference |
+| `justfile` | Modify: `site-gen`, `site-dev`, `site-build` |
+| `.github/workflows/pages.yml` | Create: build and deploy the site |
+| `.github/workflows/ci.yml` | Modify: skip the release when only `site/` or `docs/` changed |
+| `README.md` | Modify: link the site; how to preview it |
+| `plugins/skill-authoring/skills/authoring-skills/SKILL.md`, `catalog.yaml` | Modify: mention the generated reference; bump `skill-authoring` to 0.1.2 |
+
+---
+
+### Task 0: Work on a branch
+
+Every push to `main` is a release, so build this on a branch in its own worktree.
+
+- [ ] **Step 1: Create the worktree**
+
+```bash
+cd ~/repos/pg-agent-skills
+git worktree add ../pg-agent-skills-site -b workflow-site
+cd ../pg-agent-skills-site
+```
+
+All later paths are relative to `~/repos/pg-agent-skills-site`.
+
+- [ ] **Step 2: Confirm the baseline is green**
+
+Run: `just check`
+Expected: ends with `OK` after `Ran 22 tests`.
+
+---
+
+### Task 1: Make GLOSSARY.md render everywhere
+
+`GLOSSARY.md` uses `term` / `: definition` lines. That is a definition list, which GitHub doesn't render. Convert each entry to a `###` heading followed by paragraphs.
+
+**Files:**
+- Modify: `GLOSSARY.md`
+
+- [ ] **Step 1: Convert the entries**
+
+Run this from the repo root (the script is written to a scratch file, not the repo):
+
+```bash
+cat > /tmp/glossary_fix.py <<'EOF'
+import re, sys
+path = sys.argv[1]
+out = []
+for line in open(path, encoding="utf-8").read().split("\n"):
+    term = re.fullmatch(r"\*\*(.+?)\*\*(.*)", line)
+    if term:
+        out.append(f"### {term.group(1)}{term.group(2)}")
+        out.append("")
+    elif line.startswith(": "):
+        out.append(line[2:])
+    elif line.startswith("  ") and out and out[-1] != "":
+        out.append(line[2:])
+    else:
+        out.append(line)
+open(path, "w", encoding="utf-8").write("\n".join(out))
+EOF
+python3 -I /tmp/glossary_fix.py GLOSSARY.md
+```
+
+- [ ] **Step 2: Check the result**
+
+Run: `grep -c '^### ' GLOSSARY.md; grep -c '^: ' GLOSSARY.md; sed -n '1,25p' GLOSSARY.md`
+Expected: `14` headings, `0` definition lines, and an entry that looks like:
+
+```markdown
+### Brooke (`brooke-reviews[bot]`)
+
+My pull-request review bot: the GitHub App of *prrb*, my self-hosted LLM PR
+reviewer, named after my cat. ...
+**Adapt:** put your reviewer's login in the scripts' `bot=` line and your bot's
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add GLOSSARY.md
+git commit -m "docs: use headings in the glossary so GitHub renders it"
+```
+
+---
+
+### Task 2: Page helpers and skill pages
+
+**Files:**
+- Modify: `tools/skills.py`
+- Test: `tests/test_skills_tool.py`
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `tests/test_skills_tool.py`, before the `if __name__ == "__main__":` line:
+
+```python
+SITE = ("example/skills", "/docs/reference")
+
+
+class ReferenceTest(RepoTestCase):
+    def pages(self) -> dict[str, str]:
+        report = skills.validate(self.root)
+        self.assertEqual(self.messages(), [])
+        pages: dict[str, str] = skills.reference_pages(
+            self.root, report.catalog, skills.SiteContext(*SITE)
+        )
+        return pages
+
+    def test_writes_one_page_per_plugin_and_skill(self) -> None:
+        self.assertEqual(
+            sorted(self.pages()),
+            [
+                "plugins/release-tools.md",
+                "plugins/writing.md",
+                "skills/commit-messages.md",
+                "skills/semver-bump.md",
+            ],
+        )
+
+    def test_skill_page_links_plugin_and_source(self) -> None:
+        text = self.pages()["skills/semver-bump.md"]
+        self.assertTrue(text.startswith('---\ntitle: "semver-bump"\n'))
+        self.assertIn("> Does semver-bump. Use when asked.", text)
+        self.assertIn("| Plugin | [release-tools](/docs/reference/plugins/release-tools/) |", text)
+        self.assertIn("| Invoke as | `release-tools:semver-bump` |", text)
+        self.assertIn(
+            "(https://github.com/example/skills/blob/main/"
+            "plugins/release-tools/skills/semver-bump/SKILL.md)",
+            text,
+        )
+        self.assertIn("sidebar:\n  order: 1\n", text)
+        self.assertIn(skills.GENERATED_NOTE, text)
+
+    def test_skill_page_escapes_angle_brackets(self) -> None:
+        self.write(
+            "plugins/release-tools/skills/semver-bump/SKILL.md",
+            '---\nname: semver-bump\ndescription: "Review <pr-url> and &lt;x&gt; & co."\n---\n',
+        )
+        text = self.pages()["skills/semver-bump.md"]
+        self.assertIn("> Review &lt;pr-url&gt; and &lt;x&gt; &amp; co.", text)
+        self.assertIn('description: "Review <pr-url> and <x> & co."', text)
+
+    def test_skill_page_lists_claude_code_settings(self) -> None:
+        self.write(
+            "plugins/release-tools/skills/semver-bump/SKILL.md",
+            skill_md("semver-bump", "disable-model-invocation: true\n"),
+        )
+        text = self.pages()["skills/semver-bump.md"]
+        self.assertIn("## Claude Code settings\n\n- `disable-model-invocation`: `true`", text)
+        self.assertNotIn("## Claude Code settings", self.pages()["skills/commit-messages.md"])
+```
+
+`test_writes_one_page_per_plugin_and_skill` will fail until Task 3 adds plugin pages, which is expected. It is listed here so the full page set is pinned from the start.
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `just test`
+Expected: FAIL with `AttributeError: module 'skills_tool' has no attribute 'reference_pages'` (and the same for `GENERATED_NOTE`).
+
+- [ ] **Step 3: Implement the helpers and skill pages**
+
+In `tools/skills.py`, add `import html` and `import shutil` to the imports (keeping them alphabetical). Add this constant next to `SKILL_FILE`:
+
+```python
+AGENTS_DIR = "agents"
+```
+
+Then add this block after the `write_files` function:
+
+```python
+GENERATED_MARKER = ".generated"
+GENERATED_NOTE = (
+    "<!-- Generated by `tools/skills.py reference` from the repository. "
+    "Don't edit it: change the source and rebuild. -->"
+)
+
+
+@dataclass(frozen=True)
+class SiteContext:
+    """Where the generated reference pages are served from, and the repo they describe."""
+
+    repo: str
+    url_prefix: str
+
+    @property
+    def repo_url(self) -> str:
+        return f"https://github.com/{self.repo}"
+
+    def link(self, *parts: str) -> str:
+        """Returns the absolute URL of a generated page, with a trailing slash."""
+        return "/".join([self.url_prefix.rstrip("/"), *parts]) + "/"
+
+
+def plain(text: str) -> str:
+    """Decodes HTML entities written into a source file and collapses whitespace."""
+    return " ".join(html.unescape(text).split())
+
+
+def md_text(text: str) -> str:
+    """Returns `text` as one line of Markdown prose, with HTML special characters escaped."""
+    return html.escape(plain(text), quote=False)
+
+
+def page(title: str, description: str, body: str, order: int | None = None) -> str:
+    """Returns a Starlight Markdown page with frontmatter and the generated-file note."""
+    front = [
+        "---",
+        f"title: {json.dumps(title, ensure_ascii=False)}",
+        f"description: {json.dumps(plain(description), ensure_ascii=False)}",
+    ]
+    if order is not None:
+        front += ["sidebar:", f"  order: {order}"]
+    front.append("---")
+    return "\n".join([*front, "", GENERATED_NOTE, "", body.strip(), ""])
+
+
+def read_frontmatter(path: Path) -> tuple[dict[str, Any], str]:
+    """Returns a Markdown file's YAML frontmatter and body."""
+    parts = split_frontmatter(path.read_text(encoding="utf-8"))
+    if isinstance(parts, str):
+        raise ValueError(f"{path}: {parts}")
+    front = yaml.safe_load(parts[0])
+    if not isinstance(front, dict):
+        raise ValueError(f"{path}: frontmatter must be a YAML mapping")
+    return front, parts[1]
+
+
+def skill_page(
+    plugin: Plugin, skill: str, front: dict[str, Any], ctx: SiteContext, order: int
+) -> str:
+    """Returns the reference page for one skill."""
+    source = f"{PLUGINS_DIR}/{plugin.name}/{SKILLS_DIR}/{skill}/{SKILL_FILE}"
+    description = str(front["description"])
+    body = [
+        f"> {md_text(description)}",
+        "",
+        "| Field | Value |",
+        "|---|---|",
+        f"| Plugin | [{plugin.name}]({ctx.link('plugins', plugin.name)}) |",
+        f"| Invoke as | `{plugin.name}:{skill}` |",
+        f"| Source | [`{source}`]({ctx.repo_url}/blob/main/{source}) |",
+    ]
+    settings = [
+        f"- `{key}`: `{json.dumps(front[key], ensure_ascii=False)}`"
+        for key in CLAUDE_CODE_KEYS
+        if key in front
+    ]
+    if settings:
+        body += ["", "## Claude Code settings", "", *settings]
+    return page(skill, description, "\n".join(body), order)
+
+
+def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str, str]:
+    """Returns every reference page, keyed by path relative to the output directory."""
+    pages: dict[str, str] = {}
+    skill_order = 0
+    for plugin in catalog.plugins:
+        for skill in plugin.skills:
+            skill_order += 1
+            front, _ = read_frontmatter(
+                root / PLUGINS_DIR / plugin.name / SKILLS_DIR / skill / SKILL_FILE
+            )
+            pages[f"skills/{skill}.md"] = skill_page(plugin, skill, front, ctx, skill_order)
+    return dict(sorted(pages.items()))
+```
+
+- [ ] **Step 4: Run the tests**
+
+Run: `just test`
+Expected: every test passes except `test_writes_one_page_per_plugin_and_skill`, which fails because the `plugins/` pages are missing. That is fixed in Task 3.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add tools/skills.py tests/test_skills_tool.py
+git commit -m "feat(tools): generate reference pages for skills"
+```
+
+---
+
+### Task 3: Plugin pages, agent pages and the glossary
+
+**Files:**
+- Modify: `tools/skills.py`
+- Test: `tests/test_skills_tool.py`
+
+- [ ] **Step 1: Write the failing tests**
+
+Add these methods to `ReferenceTest`:
+
+```python
+    def test_plugin_page_lists_install_and_skills(self) -> None:
+        text = self.pages()["plugins/release-tools.md"]
+        self.assertIn("Release helpers.", text)
+        self.assertIn("**Version** 1.2.0 · **Category** Developer Tools · **Keywords** release", text)
+        self.assertIn("`/plugin install release-tools@example-skills`", text)
+        self.assertIn("`copilot plugin marketplace add example/skills`", text)
+        self.assertIn("`gemini extensions install ./skills/plugins/release-tools`", text)
+        self.assertIn("- [semver-bump](/docs/reference/skills/semver-bump/)", text)
+        self.assertNotIn("## Agents", text)
+        self.assertIn("sidebar:\n  order: 1\n", text)
+
+    def test_agent_page(self) -> None:
+        self.write(
+            "plugins/release-tools/agents/helper.md",
+            '---\nname: helper\ndescription: "Helps."\nmodel: sonnet\n---\n\n'
+            "## Rules\n\n- Be kind.\n\n```sh\n# not a heading\n```\n",
+        )
+        pages = self.pages()
+        text = pages["agents/helper.md"]
+        self.assertIn("> Helps.", text)
+        self.assertIn("| Subagent type | `release-tools:helper` |", text)
+        self.assertIn("| Model | `sonnet` |", text)
+        self.assertIn("## Standing rules\n\n### Rules", text)
+        self.assertIn("\n# not a heading\n", text)
+        self.assertIn(
+            "## Agents\n\n- [release-tools:helper](/docs/reference/agents/helper/)",
+            pages["plugins/release-tools.md"],
+        )
+
+    def test_duplicate_agent_names_are_an_error(self) -> None:
+        agent = '---\nname: helper\ndescription: "Helps."\n---\n'
+        self.write("plugins/release-tools/agents/helper.md", agent)
+        self.write("plugins/writing/agents/helper.md", agent)
+        report = skills.validate(self.root)
+        with self.assertRaisesRegex(ValueError, "more than one plugin"):
+            skills.reference_pages(self.root, report.catalog, skills.SiteContext(*SITE))
+
+    def test_glossary_drops_its_heading(self) -> None:
+        self.write("GLOSSARY.md", "# Glossary\n\nIntro.\n\n### Brooke\n\nA bot.\n")
+        text = self.pages()["glossary.md"]
+        self.assertTrue(text.startswith('---\ntitle: "Glossary"\n'))
+        self.assertNotIn("# Glossary\n", text.split("---", 2)[2])
+        self.assertIn("Intro.\n\n### Brooke\n\nA bot.", text)
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `just test`
+Expected: FAIL with `KeyError: 'plugins/release-tools.md'`, `KeyError: 'agents/helper.md'` and `KeyError: 'glossary.md'`.
+
+- [ ] **Step 3: Implement**
+
+In `tools/skills.py`, add these functions above `reference_pages`:
+
+```python
+def demote_headings(markdown: str) -> str:
+    """Moves every Markdown heading down one level, leaving fenced code alone."""
+    lines: list[str] = []
+    fenced = False
+    for line in markdown.splitlines():
+        if line.lstrip().startswith(("```", "~~~")):
+            fenced = not fenced
+        elif not fenced and re.match(r"#{1,5} ", line):
+            line = "#" + line
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def install_rows(plugin: Plugin, catalog: Catalog, ctx: SiteContext) -> list[str]:
+    """Returns a Markdown table of install commands for each client."""
+    target = f"{plugin.name}@{catalog.name}"
+    clone_dir = ctx.repo.split("/")[-1]
+    return [
+        "| Client | How |",
+        "|---|---|",
+        f"| Claude Code | `/plugin marketplace add {ctx.repo}`, then `/plugin install {target}` |",
+        f"| GitHub Copilot CLI | `copilot plugin marketplace add {ctx.repo}`, then "
+        f"`copilot plugin install {target}` |",
+        f"| OpenAI Codex | `codex plugin marketplace add {ctx.repo}`, then install "
+        f"`{plugin.name}` from `/plugins` |",
+        f"| Gemini CLI | `git clone {ctx.repo_url}.git`, then "
+        f"`gemini extensions install ./{clone_dir}/plugins/{plugin.name}` |",
+    ]
+
+
+def plugin_page(
+    plugin: Plugin, catalog: Catalog, agents: list[str], ctx: SiteContext, order: int
+) -> str:
+    """Returns the reference page for one plugin."""
+    facts = f"**Version** {plugin.version} · **Category** {plugin.category}"
+    if plugin.keywords:
+        facts += f" · **Keywords** {', '.join(plugin.keywords)}"
+    body = [
+        md_text(plugin.description),
+        "",
+        facts,
+        "",
+        "## Install",
+        "",
+        *install_rows(plugin, catalog, ctx),
+        "",
+        "## Skills",
+        "",
+        *[f"- [{skill}]({ctx.link('skills', skill)})" for skill in plugin.skills],
+    ]
+    if agents:
+        body += [
+            "",
+            "## Agents",
+            "",
+            *[f"- [{plugin.name}:{agent}]({ctx.link('agents', agent)})" for agent in agents],
+        ]
+    return page(plugin.name, plugin.description, "\n".join(body), order)
+
+
+def agent_page(plugin: Plugin, path: Path, ctx: SiteContext, order: int) -> tuple[str, str]:
+    """Returns an agent's name and its reference page."""
+    front, rules = read_frontmatter(path)
+    name = str(front.get("name", path.stem))
+    description = str(front.get("description", ""))
+    source = f"{PLUGINS_DIR}/{plugin.name}/{AGENTS_DIR}/{path.name}"
+    body = [
+        f"> {md_text(description)}",
+        "",
+        "| Field | Value |",
+        "|---|---|",
+        f"| Subagent type | `{plugin.name}:{name}` |",
+        f"| Plugin | [{plugin.name}]({ctx.link('plugins', plugin.name)}) |",
+    ]
+    if "model" in front:
+        body.append(f"| Model | `{front['model']}` |")
+    body += [
+        f"| Source | [`{source}`]({ctx.repo_url}/blob/main/{source}) |",
+        "",
+        "## Standing rules",
+        "",
+        demote_headings(rules.strip()),
+    ]
+    return name, page(name, description, "\n".join(body), order)
+
+
+def glossary_page(root: Path) -> str | None:
+    """Returns GLOSSARY.md as a page, without its own title heading, if it exists."""
+    path = root / "GLOSSARY.md"
+    if not path.is_file():
+        return None
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if lines and lines[0].startswith("# "):
+        lines = lines[1:]
+    return page(
+        "Glossary",
+        "The personal names and conventions these skills use, and how to adapt them.",
+        "\n".join(lines),
+    )
+```
+
+Then replace the body of `reference_pages` with:
+
+```python
+    pages: dict[str, str] = {}
+    skill_order = 0
+    agent_order = 0
+    for index, plugin in enumerate(catalog.plugins, start=1):
+        agents_dir = root / PLUGINS_DIR / plugin.name / AGENTS_DIR
+        agent_names: list[str] = []
+        for path in sorted(agents_dir.glob("*.md")) if agents_dir.is_dir() else []:
+            agent_order += 1
+            name, text = agent_page(plugin, path, ctx, agent_order)
+            key = f"agents/{name}.md"
+            if key in pages:
+                raise ValueError(f"agent {name!r} is defined in more than one plugin")
+            pages[key] = text
+            agent_names.append(name)
+        pages[f"plugins/{plugin.name}.md"] = plugin_page(plugin, catalog, agent_names, ctx, index)
+        for skill in plugin.skills:
+            skill_order += 1
+            front, _ = read_frontmatter(
+                root / PLUGINS_DIR / plugin.name / SKILLS_DIR / skill / SKILL_FILE
+            )
+            pages[f"skills/{skill}.md"] = skill_page(plugin, skill, front, ctx, skill_order)
+    glossary = glossary_page(root)
+    if glossary is not None:
+        pages["glossary.md"] = glossary
+    return dict(sorted(pages.items()))
+```
+
+- [ ] **Step 4: Run the tests**
+
+Run: `just test`
+Expected: `OK`, with every `ReferenceTest` test passing, including `test_writes_one_page_per_plugin_and_skill`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add tools/skills.py tests/test_skills_tool.py
+git commit -m "feat(tools): generate plugin, agent and glossary reference pages"
+```
+
+---
+
+### Task 4: Write the pages, and the `reference` command
+
+**Files:**
+- Modify: `tools/skills.py`
+- Test: `tests/test_skills_tool.py`
+
+- [ ] **Step 1: Write the failing tests**
+
+Add to `ReferenceTest`:
+
+```python
+    def test_write_replaces_its_own_output(self) -> None:
+        out = self.root / "out"
+        skills.write_reference(out, {"a.md": "1", "skills/b.md": "2"})
+        skills.write_reference(out, {"c.md": "3"})
+        self.assertFalse((out / "a.md").exists())
+        self.assertFalse((out / "skills").exists())
+        self.assertEqual((out / "c.md").read_text(encoding="utf-8"), "3")
+        self.assertTrue((out / skills.GENERATED_MARKER).is_file())
+
+    def test_write_refuses_a_directory_it_did_not_write(self) -> None:
+        self.write("mine/keep.md", "x")
+        with self.assertRaisesRegex(ValueError, "refusing to replace"):
+            skills.write_reference(self.root / "mine", {"a.md": "1"})
+        self.assertTrue((self.root / "mine/keep.md").exists())
+
+    def test_main_reference(self) -> None:
+        out = self.root / "site-ref"
+        args = ["--root", str(self.root), "reference", "--out", str(out)]
+        args += ["--repo", SITE[0], "--url-prefix", SITE[1]]
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(skills.main(args), 0)
+            self.write("plugins/writing/skills/commit-messages/SKILL.md", "no frontmatter\n")
+            self.assertEqual(skills.main(args), 1)
+        self.assertTrue((out / "skills/semver-bump.md").is_file())
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `just test`
+Expected: FAIL with `AttributeError: ... no attribute 'write_reference'` and, for `test_main_reference`, an argparse error (exit 2: `invalid choice: 'reference'`).
+
+- [ ] **Step 3: Implement**
+
+Add after `reference_pages` in `tools/skills.py`:
+
+```python
+def write_reference(out: Path, pages: dict[str, str]) -> None:
+    """Replaces `out` with exactly `pages`, if `out` is missing or was written by this tool."""
+    if out.exists():
+        foreign = not out.is_dir() or (
+            any(out.iterdir()) and not (out / GENERATED_MARKER).is_file()
+        )
+        if foreign:
+            raise ValueError(
+                f"{out} has files this tool did not write (no {GENERATED_MARKER} marker); "
+                "refusing to replace it"
+            )
+        shutil.rmtree(out)
+    out.mkdir(parents=True)
+    for rel, text in pages.items():
+        target = out / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+    (out / GENERATED_MARKER).write_text(
+        "Written by tools/skills.py reference. Safe to delete.\n", encoding="utf-8"
+    )
+```
+
+In `main`, register the subcommand after the `generate` parser:
+
+```python
+    ref = commands.add_parser("reference", help="write the documentation site's reference pages")
+    ref.add_argument("--out", type=Path, required=True, help="directory to replace")
+    ref.add_argument("--repo", required=True, help="GitHub repository, as owner/name")
+    ref.add_argument("--url-prefix", required=True, help="URL path the pages are served under")
+```
+
+Handle it right after the `if args.command == "validate":` block:
+
+```python
+    if args.command == "reference":
+        try:
+            pages = reference_pages(root, report.catalog, SiteContext(args.repo, args.url_prefix))
+            write_reference(args.out, pages)
+        except (ValueError, OSError, yaml.YAMLError) as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 1
+        print(f"wrote {len(pages)} reference pages to {args.out}")
+        return 0
+```
+
+Also update the module docstring's usage block with one line:
+
+```
+    uv run --script tools/skills.py reference --out DIR --repo OWNER/NAME --url-prefix PATH
+```
+
+- [ ] **Step 4: Run the full check**
+
+Run: `just check`
+Expected: validation `ok`, generated files current, mypy prints nothing, and the tests end `OK` (33 tests).
+
+- [ ] **Step 5: Try it on the real repo**
+
+Run: `uv run --quiet --script tools/skills.py reference --out /tmp/pgref --repo PeterGrace/pg-skills --url-prefix /pg-skills/reference && ls -R /tmp/pgref | head -40 && sed -n '1,30p' /tmp/pgref/agents/issue-implementer.md`
+Expected: `wrote 24 reference pages` (4 plugins, 18 skills, 1 agent, 1 glossary), files under `plugins/`, `skills/`, `agents/`, and an agent page whose table says ``| Subagent type | `github-workflows:issue-implementer` |``. Then `rm -r /tmp/pgref`. If the count differs, check that every catalog skill has a page before going on.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add tools/skills.py tests/test_skills_tool.py
+git commit -m "feat(tools): add the reference command for the docs site"
+```
+
+---
+
+### Task 5: The Starlight site
+
+**Files:**
+- Create: `site/package.json`, `site/package-lock.json`, `site/astro.config.mjs`, `site/src/content.config.ts`, `site/tsconfig.json`, `site/src/content/docs/index.mdx`
+- Modify: `.gitignore`, `justfile`
+
+- [ ] **Step 1: Create `site/package.json`**
+
+```json
+{
+  "name": "pg-skills-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  }
+}
+```
+
+- [ ] **Step 2: Install the pinned dependencies**
+
+Run: `cd site && npm install --save-exact astro@7.4.13 @astrojs/starlight@0.43.1 starlight-links-validator@0.27.0 sharp@0.35.5 && cd ..`
+Expected: `site/package-lock.json` is created, and `site/package.json` gains a `dependencies` block with those four exact versions (no `^`).
+
+- [ ] **Step 3: Create `site/tsconfig.json`**
+
+```json
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}
+```
+
+- [ ] **Step 4: Create `site/src/content.config.ts`**
+
+```ts
+import { defineCollection } from 'astro:content';
+import { docsLoader } from '@astrojs/starlight/loaders';
+import { docsSchema } from '@astrojs/starlight/schema';
+
+export const collections = {
+	docs: defineCollection({ loader: docsLoader(), schema: docsSchema() }),
+};
+```
+
+- [ ] **Step 5: Create `site/astro.config.mjs`**
+
+```js
+// @ts-check
+import { existsSync } from 'node:fs';
+import { defineConfig } from 'astro/config';
+import starlight from '@astrojs/starlight';
+import starlightLinksValidator from 'starlight-links-validator';
+
+const repo = 'https://github.com/PeterGrace/pg-skills';
+const docs = new URL('./src/content/docs/', import.meta.url);
+
+// The reference section is generated by `just site-gen` (tools/skills.py reference).
+const reference = [
+	{ label: 'Plugins', autogenerate: { directory: 'reference/plugins' } },
+	{ label: 'Skills', collapsed: true, autogenerate: { directory: 'reference/skills' } },
+	{ label: 'Agents', autogenerate: { directory: 'reference/agents' } },
+	{ label: 'Glossary', slug: 'reference/glossary' },
+];
+
+// Diataxis sections in sidebar order. Each appears once its folder exists, so the site
+// never shows an empty placeholder section.
+const sections = [
+	{ label: 'Tutorials', directory: 'tutorials' },
+	{ label: 'How-to guides', directory: 'how-to' },
+	{ label: 'Reference', directory: 'reference', items: reference },
+	{ label: 'Explanation', directory: 'explanation' },
+];
+
+export default defineConfig({
+	site: 'https://petergrace.github.io',
+	// Keep in step with --url-prefix in the justfile's site-gen recipe.
+	base: '/pg-skills',
+	integrations: [
+		starlight({
+			title: 'pg-skills',
+			description: 'How Peter Grace plans, builds and reviews software with AI agent skills.',
+			social: [{ icon: 'github', label: 'GitHub', href: repo }],
+			plugins: [starlightLinksValidator()],
+			sidebar: sections
+				.filter(({ directory }) => existsSync(new URL(directory, docs)))
+				.map(({ label, directory, items }) => ({
+					label,
+					items: items ?? [{ autogenerate: { directory } }],
+				})),
+		}),
+	],
+});
+```
+
+- [ ] **Step 6: Create `site/src/content/docs/index.mdx`**
+
+```mdx
+---
+title: pg-skills
+description: My AI agent skills for planning, building and reviewing software, and how I use them.
+template: splash
+hero:
+  tagline: The agent skills I use to take work from an idea to merged pull requests, and how I run them.
+  actions:
+    - text: Browse the plugins
+      link: /pg-skills/reference/plugins/github-workflows/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/PeterGrace/pg-skills
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+These are the skills I use with Claude Code every day: planning features into issues,
+fanning issues out to subagents, getting each pull request reviewed by my review bot
+Brooke, and checking that the result does what it claimed. They install in Claude Code,
+GitHub Copilot CLI, OpenAI Codex, Cursor and Gemini CLI.
+
+<CardGrid>
+	<Card title="github-workflows" icon="github">
+		Plan, groom and split issues, implement them with subagents, answer review
+		feedback, and close out epics. [Read more](/pg-skills/reference/plugins/github-workflows/)
+	</Card>
+	<Card title="forgejo-workflows" icon="seti:git">
+		The same issue-to-PR workflows on Forgejo.
+		[Read more](/pg-skills/reference/plugins/forgejo-workflows/)
+	</Card>
+	<Card title="study-guides" icon="open-book">
+		Write study docs for a codebase, fact-check them, and reconcile the fixes.
+		[Read more](/pg-skills/reference/plugins/study-guides/)
+	</Card>
+	<Card title="skill-authoring" icon="pencil">
+		How to add or change a skill in this repository.
+		[Read more](/pg-skills/reference/plugins/skill-authoring/)
+	</Card>
+</CardGrid>
+
+The names in these skills are mine: my review bot, my servers, my projects. The
+[glossary](/pg-skills/reference/glossary/) says what each one is and what to change so
+the skills fit your setup.
+```
+
+- [ ] **Step 7: Ignore build output and generated pages**
+
+Append to `.gitignore`:
+
+```
+site/node_modules/
+site/dist/
+site/.astro/
+site/src/content/docs/reference/
+```
+
+- [ ] **Step 8: Add the recipes**
+
+Append to `justfile`:
+
+```
+site_ref := "site/src/content/docs/reference"
+
+# Write the site's reference pages from the catalog and skills.
+site-gen:
+    {{ skills }} reference --out {{ site_ref }} --repo PeterGrace/pg-skills --url-prefix /pg-skills/reference
+
+# Preview the documentation site locally, with live reload.
+site-dev: site-gen
+    cd site && npm run dev
+
+# Build the documentation site into site/dist, checking every internal link.
+site-build: site-gen
+    cd site && npm ci && npm run build
+```
+
+- [ ] **Step 9: Build it**
+
+Run: `just site-build 2>&1 | tail -15`
+Expected: `wrote 24 reference pages`, then Astro's build log reporting the pages it built (the 24 reference pages, the home page and a 404 page), the links validator reporting `All internal links are valid.`, and no errors.
+
+- [ ] **Step 10: Look at it**
+
+Run: `cd site && npx astro preview --port 4321 &` then open `http://localhost:4321/pg-skills/`. Check that the home page cards link to plugin pages, the sidebar shows only a Reference section (with Plugins, Skills, Agents and Glossary), and `/pg-skills/reference/agents/issue-implementer/` shows the standing rules with `###` headings under "Standing rules". Stop the preview with `kill %1` (or the PID it printed).
+
+- [ ] **Step 11: Make sure generated pages aren't tracked**
+
+Run: `git status --short`
+Expected: `site/` shows `package.json`, `package-lock.json`, `astro.config.mjs`, `tsconfig.json` and `src/content.config.ts` and `src/content/docs/index.mdx`. Nothing under `site/src/content/docs/reference/`, `site/dist/` or `site/node_modules/`.
+
+- [ ] **Step 12: Commit**
+
+```bash
+git add .gitignore justfile site/package.json site/package-lock.json site/tsconfig.json \
+    site/astro.config.mjs site/src/content.config.ts site/src/content/docs/index.mdx
+git commit -m "feat(site): add the Starlight site with a generated reference section"
+```
+
+---
+
+### Task 6: Deploy to GitHub Pages
+
+**Files:**
+- Create: `.github/workflows/pages.yml`
+
+- [ ] **Step 1: Create the workflow**
+
+```yaml
+# Builds the documentation site on every relevant PR and push; deploys it from main.
+#
+# The reference section is generated from the catalog and skills, so skill changes
+# trigger a rebuild too.
+name: Pages
+
+on:
+  pull_request:
+    paths: [site/**, plugins/**, catalog.yaml, GLOSSARY.md, tools/**, justfile, .github/workflows/pages.yml]
+  push:
+    branches: [main]
+    paths: [site/**, plugins/**, catalog.yaml, GLOSSARY.md, tools/**, justfile, .github/workflows/pages.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; a newer push replaces a queued one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build the site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          cache-dependency-glob: tools/skills.py
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2.88.0
+        with:
+          tool: just
+      - run: just site-build
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site/dist
+
+  deploy:
+    name: Deploy
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+```
+
+- [ ] **Step 2: Check the YAML parses**
+
+Run: `uv run --quiet --no-project --with pyyaml python -c "import yaml,sys; yaml.safe_load(open('.github/workflows/pages.yml')); print('ok')"`
+Expected: `ok`
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add .github/workflows/pages.yml
+git commit -m "ci: build the docs site and deploy it to GitHub Pages"
+```
+
+---
+
+### Task 7: Don't release docs-only changes
+
+**Files:**
+- Modify: `.github/workflows/ci.yml` (the `Tag the next patch version and publish it` step)
+
+- [ ] **Step 1: Add the skip**
+
+In `.github/workflows/ci.yml`, replace:
+
+```bash
+          if [ -z "$latest" ]; then
+            next=v0.1.0
+          else
+            IFS=. read -r major minor patch <<< "${latest#v}"
+```
+
+with:
+
+```bash
+          if [ -z "$latest" ]; then
+            next=v0.1.0
+          else
+            # Releases are for skills. Skip when only the docs site or docs/ changed.
+            if ! git diff --name-only "$latest" "$GITHUB_SHA" | grep -qvE '^(site|docs)/'; then
+              echo "Only site/ and docs/ changed since $latest; not releasing"; exit 0
+            fi
+            IFS=. read -r major minor patch <<< "${latest#v}"
+```
+
+Also update the header comment's second paragraph to say: "Every push to main that changes more than `site/` and `docs/` is a release."
+
+- [ ] **Step 2: Test the condition locally**
+
+Run:
+
+```bash
+git fetch --tags -q
+latest=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
+check() { if ! git diff --name-only "$latest" "$1" | grep -qvE '^(site|docs)/'; then echo skip; else echo release; fi; }
+echo "spec commit only: $(check d528adb)"
+echo "branch head:      $(check HEAD)"
+```
+
+Expected: `spec commit only: skip` (that commit only adds a file under `docs/`) and `branch head: release` (the branch changes `tools/` and more).
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add .github/workflows/ci.yml
+git commit -m "ci: don't cut a release when only site/ or docs/ changed"
+```
+
+---
+
+### Task 8: Point people at the site
+
+**Files:**
+- Modify: `README.md`, `plugins/skill-authoring/skills/authoring-skills/SKILL.md`, `catalog.yaml` (and the regenerated manifests)
+
+- [ ] **Step 1: README**
+
+Under the first paragraph of `README.md`, add:
+
+```markdown
+**Documentation:** <https://petergrace.github.io/pg-skills/>, with how I use these
+skills and a reference page for every plugin, skill and agent.
+```
+
+Add a row to the "What's here" table:
+
+```markdown
+| `site/` | The documentation site (Astro Starlight); its reference section is generated | yes, except `site/src/content/docs/reference/` |
+```
+
+And add a section before "Releases":
+
+````markdown
+## The documentation site
+
+```
+just site-dev     # preview at http://localhost:4321/pg-skills/
+just site-build   # what CI runs: generate the reference, build, check every link
+```
+
+The reference pages are written by `tools/skills.py reference` from `catalog.yaml`,
+each `SKILL.md`, each plugin's `agents/` and `GLOSSARY.md`, so they never need a
+hand edit. Pushes to `main` that touch the site, the skills or the tooling redeploy
+it. Changes only under `site/` or `docs/` don't cut a release.
+````
+
+- [ ] **Step 2: The authoring skill**
+
+In `plugins/skill-authoring/skills/authoring-skills/SKILL.md`, at the end of the "5. Regenerate and check" bullet list, add:
+
+```markdown
+- **The site's reference pages need nothing from you.** They are generated from the
+  skill and the catalog on every deploy. Run `just site-build` if you want to see the
+  page, or to check a skill's description renders cleanly.
+```
+
+In `catalog.yaml`, bump `skill-authoring`'s `version` from `0.1.1` to `0.1.2`.
+
+- [ ] **Step 3: Regenerate and check**
+
+Run: `just generate && just check && just site-build 2>&1 | tail -3`
+Expected: `ok` from validation, `OK` from the tests, and a site build with valid links.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add README.md catalog.yaml plugins/skill-authoring .claude-plugin .github/plugin .agents .cursor-plugin
+git commit -m "docs: link the documentation site from the README and authoring skill"
+```
+
+---
+
+### Task 9: Enable Pages and ship
+
+- [x] **Step 1: Enable Pages** (done 2026-11-21, at Peter's request)
+
+The repository's Pages source is already GitHub Actions. To confirm, or to redo it on a fresh repo:
+
+```bash
+gh api -X POST repos/PeterGrace/pg-skills/pages -f build_type=workflow
+gh api repos/PeterGrace/pg-skills/pages --jq '.build_type, .html_url'
+```
+
+Expected: `workflow` and `https://petergrace.github.io/pg-skills/`.
+
+- [ ] **Step 2: Merge into main and push**
+
+```bash
+cd ~/repos/pg-agent-skills
+git merge --ff-only workflow-site
+git push origin main
+```
+
+- [ ] **Step 3: Watch both workflows**
+
+Run: `gh run list --limit 3`, then `gh run watch <id> --exit-status` for the CI run and the Pages run.
+Expected: CI passes and releases (the push changes `tools/` and a plugin version). Pages builds and deploys.
+
+- [ ] **Step 4: Check the live site**
+
+Run: `curl -sf https://petergrace.github.io/pg-skills/ | grep -o '<title>[^<]*</title>'; curl -sf -o /dev/null -w '%{http_code}\n' https://petergrace.github.io/pg-skills/reference/skills/github-issue-to-pr/`
+Expected: `<title>pg-skills</title>` (or `pg-skills | pg-skills`) and `200`.
+
+- [ ] **Step 5: Clean up the worktree**
+
+```bash
+git worktree remove ../pg-agent-skills-site
+git branch -d workflow-site
+```
+
+---
+
+## After this plan
+
+Phases 2-4 of the spec (interview, writing, checking) are conversational and don't
+belong in a code plan. They start once the skeleton is live. Each area adds its
+`tutorials/`, `how-to/` and `explanation/` pages, and the sidebar shows each section
+as soon as its folder exists.
