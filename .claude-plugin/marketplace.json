@@ -1,0 +1,25 @@
+{
+  "name": "pg-skills",
+  "owner": {
+    "name": "Peter Grace"
+  },
+  "metadata": {
+    "description": "Peter Grace's personal AI agent skills."
+  },
+  "plugins": [
+    {
+      "name": "skill-authoring",
+      "source": "./plugins/skill-authoring",
+      "description": "Skills for writing and maintaining the agent skills in this repository.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Peter Grace"
+      },
+      "category": "Developer Tools",
+      "keywords": [
+        "skills",
+        "authoring"
+      ]
+    }
+  ]
+}

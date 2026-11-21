@@ -1,0 +1,22 @@
+# Canonical skills catalog. Source of truth, together with plugins/*/skills/*/SKILL.md.
+#
+# This file says which plugins exist and which skills each one ships. Everything about a
+# skill itself lives in its SKILL.md frontmatter. tools/skills.py validates it; unknown
+# keys are errors.
+schema_version: 1
+
+marketplace:
+  name: pg-skills
+  description: "Peter Grace's personal AI agent skills."
+  owner:
+    name: Peter Grace
+
+plugins:
+  # Each plugin's skills live in plugins/<name>/skills/<skill>/.
+  - name: skill-authoring
+    description: "Skills for writing and maintaining the agent skills in this repository."
+    version: 0.1.0
+    category: Developer Tools
+    keywords: [skills, authoring]
+    skills:
+      - authoring-skills

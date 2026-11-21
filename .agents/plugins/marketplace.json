@@ -1,0 +1,17 @@
+{
+  "name": "pg-skills",
+  "plugins": [
+    {
+      "name": "skill-authoring",
+      "source": {
+        "source": "local",
+        "path": "./plugins/skill-authoring"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

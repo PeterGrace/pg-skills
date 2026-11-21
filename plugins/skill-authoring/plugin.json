@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "skill-authoring",
+  "version": "0.1.0",
+  "description": "Skills for writing and maintaining the agent skills in this repository.",
+  "author": {
+    "name": "Peter Grace"
+  },
+  "keywords": [
+    "skills",
+    "authoring"
+  ]
+}
