@@ -1107,8 +1107,16 @@ with:
           else
             # Releases are for skills. Skip when only the docs site or docs/ changed.
             # NUL-delimited, so git doesn't quote unusual filenames (non-ASCII, tabs).
-            if ! git diff --name-only --no-renames -z "$latest" "$GITHUB_SHA" | grep -qzvP '\A(site|docs)/'; then
+            # Write the diff to a file first: piping it into `grep -q` makes git die of
+            # SIGPIPE when grep exits early, and `pipefail` then reads that as docs-only.
+            changed=$(mktemp)
+            git diff --name-only --no-renames -z "$latest" "$GITHUB_SHA" > "$changed"
+            status=0
+            grep -qzvP '\A(site|docs)/' "$changed" || status=$?
+            if [ "$status" -eq 1 ]; then
               echo "Only site/ and docs/ changed since $latest; not releasing"; exit 0
+            elif [ "$status" -ne 0 ]; then
+              echo "Could not classify the changed paths (grep exit $status)" >&2; exit "$status"
             fi
             IFS=. read -r major minor patch <<< "${latest#v}"
 ```
@@ -1151,6 +1159,17 @@ GNU grep, which the step's `grep` means. Expected: `docs only: skip`, `mixed: re
 > shipped file from `plugins/` to `docs/` would otherwise look docs-only. In the same
 > temporary repository, `git mv plugins/p/ref.md docs/ref.md` committed on top of a
 > tagged commit must print `release`.
+
+> **Corrected (issue #26, 2026-11-21).** The step above no longer pipes `git diff` into
+> `grep -q`. Actions runs `run:` steps under `bash -e -o pipefail`; `grep -q` exits at the
+> first non-docs path, so on a list longer than a pipe buffer `git diff` dies of SIGPIPE,
+> the pipeline fails, and `!` read that as "docs-only", skipping the release for a large
+> mixed change. A failing `git diff` was misread the same way. The step now writes the diff
+> to a file (a git failure fails the step under `-e`), runs `grep` on the file, and treats
+> only grep's exit 1 as docs-only; any other nonzero exit fails the step. The regression
+> test `tests/test_release_step.py` (part of `just check`) runs the step's real script,
+> read from `ci.yml`, against fake `git` and `gh` commands. The fixed-input check in Step 2
+> still shows the predicate's classification, but only that test covers pipe behaviour.
 
 - [x] **Step 3: Commit**
 
