@@ -121,10 +121,11 @@ T4                     -> T5 (Starlight site)
 T5                     -> T6 (Pages workflow)
 T5                     -> T8 (README + authoring skill)
 T7 (release skip)      -> T9
-T6, T8                 -> T9 (smoke test)
+T6, T8                 -> T9 (integration-branch smoke test)
 ```
 
-T1, T2 and T7 can start straight away. T9 depends on every other task.
+T1, T2 and T7 can start straight away. T9 depends on every other task. Merging into `main`
+and checking the live site are not tasks: see **Shipping the milestone (coordinator only)**.
 
 ---
 
@@ -1136,48 +1137,59 @@ git commit -m "docs: link the documentation site from the README and authoring s
 
 ---
 
-### Task 9: Smoke test and ship
+### Task 9: Smoke test the integration branch
 
-Under the epic flow each task is its own PR into the milestone integration branch, in
-its own worktree, so the plan has no setup task. This task runs last. It checks the
-integration branch as a whole, then the live site once the coordinator has merged the
-branch into `main`.
+The last sub-issue. It runs once every other task has merged into the milestone
+integration branch, and it ends with recorded evidence on that branch. Merging into
+`main` and checking the live site come after it, in **Shipping the milestone** below:
+the coordinator only starts those once this task has merged, so they can't be part of it.
 
-- [ ] **Step 0: Check the integration branch**
+- [ ] **Step 1: Run the gates on the integration branch**
 
 Run: `just check && just site-build 2>&1 | tail -5`
-Expected: tests `OK`, `wrote 24 reference pages`, and a site build reporting that
-every internal link is valid.
+Expected: tests `OK` (33), `wrote 24 reference pages`, and a site build reporting
+that every internal link is valid.
 
-- [x] **Step 1: Enable Pages** (done 2026-11-21, at Peter's request)
+- [ ] **Step 2: Check the built site**
 
-The repository's Pages source is already GitHub Actions. To confirm, or to redo it on a fresh repo:
+Run: `test -f site/dist/index.html && test -f site/dist/reference/skills/github-issue-to-pr/index.html && test -f site/dist/reference/agents/issue-implementer/index.html && test -f site/dist/reference/glossary/index.html && echo built`
+Expected: `built`.
 
-```bash
-gh api -X POST repos/PeterGrace/pg-skills/pages -f build_type=workflow
-gh api repos/PeterGrace/pg-skills/pages --jq '.build_type, .html_url'
-```
+- [ ] **Step 3: Check Pages is set up**
 
-Expected: `workflow` and `https://petergrace.github.io/pg-skills/`.
+Run: `gh api repos/PeterGrace/pg-skills/pages --jq '.build_type, .html_url'`
+Expected: `workflow` and `https://petergrace.github.io/pg-skills/`. Pages was enabled on 2026-11-21. If it isn't set up, stop and report: enabling it needs Peter's go-ahead.
 
-- [ ] **Step 2: Merge into main** (the coordinator does this)
+- [ ] **Step 4: Record the evidence**
 
-The epic's final step merges the milestone integration branch into `main` once,
-through a PR.
+Post the output of Steps 1-3 as a comment on this task's issue, then open the
+task's PR. It only changes the plan's own checkboxes, ticking Tasks 1-9, so it has
+something to merge.
 
-- [ ] **Step 3: Watch both workflows**
+---
 
-Run: `gh run list --limit 3`, then `gh run watch <id> --exit-status` for the CI run and the Pages run.
-Expected: CI passes and releases (the push changes `tools/` and a plugin version). Pages builds and deploys.
+## Shipping the milestone (coordinator only)
 
-- [ ] **Step 4: Check the live site**
+This isn't a sub-issue. The coordinator runs it after Task 9 merges, following
+`github-epic-to-merged-prs`' Finishing section. `<M>` is the milestone integration
+branch.
 
-Run: `curl -sf https://petergrace.github.io/pg-skills/ | grep -o '<title>[^<]*</title>'; curl -sf -o /dev/null -w '%{http_code}\n' https://petergrace.github.io/pg-skills/reference/skills/github-issue-to-pr/`
-Expected: `<title>pg-skills</title>` (or `pg-skills | pg-skills`) and `200`.
-
-- [ ] **Step 5: Close out**
-
-Run `github-epic-close-out` on the epic.
+1. **Pre-merge audit.** Run `github-epic-close-out <epic> --branch <M>`. Don't open
+   the final PR unless it validates.
+2. **The milestone PR.** Open a PR from `<M>` into `main` that lists the sub-issues and
+   their PRs and links the audit comment. Wait for CI to be green on its head and
+   `mergeStateStatus` to be `CLEAN`.
+3. **The final merge.** With Peter's go-ahead, run `gh pr merge <P> --merge`: a merge
+   commit, never squash or rebase.
+4. **Watch both workflows on `main`.** Run `gh run list --limit 3`, then
+   `gh run watch <id> --exit-status` for the CI run and the Pages run. Expected: CI
+   passes and releases, because the merge changes `tools/` and a plugin version. Pages
+   builds and deploys.
+5. **Check the live site.**
+   Run: `curl -sf https://petergrace.github.io/pg-skills/ | grep -o '<title>[^<]*</title>'; curl -sf -o /dev/null -w '%{http_code}\n' https://petergrace.github.io/pg-skills/reference/skills/github-issue-to-pr/`
+   Expected: a title containing `pg-skills`, and `200`.
+6. **Close out.** Re-run `github-epic-close-out <epic>` against `main`. It confirms the
+   merge and closes the epic. Then delete `<M>`.
 
 ---
 
