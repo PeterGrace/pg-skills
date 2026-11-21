@@ -101,15 +101,17 @@ Here is what you should see. The skill is a push-through workflow, so it doesn't
 to ask you unless something fails.
 
 1. Because your session is the top-level one, it hands the work to an `issue-implementer`
-   subagent in a worktree of its own, and relays the report. You'll see that agent's
-   progress rather than the skill's steps.
+   subagent in a worktree of its own, and relays the report. The skill relays that agent's report when it
+   finishes.
 2. The agent reads the issue, creates a branch named `<prefix>-issue-1-<slug>`, where the
    prefix (`fix`, `feat` or `issue`) depends on the issue's labels and the slug comes from its title, and makes the change.
 3. It runs `just fmt` and `just test`. It skips `cargo clippy` because the project has no
    `Cargo.toml`, and says so.
 4. A second, fresh subagent audits the claims in the PR description. Your repository has
    no `claims.json`, so the audit runs in table-only mode and nothing is recorded; the
-   results go into the PR body.
+   results go into the PR body. The audit follows the `claims-audit` skill, which this
+   plugin doesn't ship. If your agent can't find it, it may report the audit as skipped,
+   and the rest of the tutorial still works.
 5. It commits, pushes, opens a PR whose body includes `Closes #1`, and comments the PR
    link on the issue.
 
@@ -141,6 +143,10 @@ Back in Claude Code, say:
 Walk through the review comments on PR 2.
 ```
 
+The implementer's worktree may still have the PR's branch checked out. If the skill
+reports that it can't check the branch out, run `git worktree list`, remove the
+implementer's worktree with `git worktree remove <path>`, and ask again.
+
 This skill never asks you anything. For your comment it should:
 
 1. fetch the PR's conversation comments, inline comments and review bodies, and find
@@ -148,7 +154,8 @@ This skill never asks you anything. For your comment it should:
 2. decide to apply it, because it's a sensible, cheap request within the PR's scope;
 3. edit the code, add the test and commit it, quoting your comment in the message;
 4. run `just fmt` and `just test` again, and push only when they pass;
-5. reply to your comment naming the commit, after the push;
+5. reply naming the commit, after the push (a review body gets a top-level PR comment
+   rather than a threaded reply);
 6. end with a report: the PR, a count per disposition, the commit SHAs, the validation
    results and the push status.
 

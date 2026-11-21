@@ -71,7 +71,7 @@ An agent that reports a sub-issue as ambiguous isn't a trigger. That comes to yo
 
 ## What goes wrong most often
 
-I named four. Each one has a rule in the skill.
+I named four. Each one has a recorded incident, and most have a rule in the skill.
 
 - **Cost and context.** Opus implementers and large coordinator contexts use up the
   weekly limit. Start on Sonnet, use the state file, and compact at the checkpoints.
@@ -79,14 +79,16 @@ I named four. Each one has a rule in the skill.
   sits. Read the bot's issue comments on the PR first, because a skip is usually
   explained there. For a stale branch, have the PR's agent run
   `git merge origin/<milestone branch>` (never rebase) and push. If the bot has a
-  re-trigger command, use it, but only after a new commit.
+  re-trigger command, use it when no review shows up. Don't use it on an unchanged
+  head: Brooke won't re-review one (see
+  [Answer review comments](/pg-skills/how-to/answer-review-comments/)).
 - **Machine overload.** Too many agents, gates or build caches at once. Start
   parallel issues only when they touch different files. Run heavy gates through a
   lock if the project has one, and run `cargo clean` in a worktree before you remove
   it.
-- **Scope creep.** Follow-ups and audit findings grow the epic past the plan. Ask once,
-  in a batch, which follow-ups belong in the epic. The close-out lists follow-ups and
-  files them only when you say so.
+- **Scope creep.** Follow-ups and audit findings grow the epic past the plan. Decide which
+  follow-ups belong in the epic, and ask once, in a batch. The close-out lists
+  follow-ups and files them only when you say so.
 
 ## A worked example
 

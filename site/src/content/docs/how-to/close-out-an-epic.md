@@ -9,7 +9,8 @@ This guide audits a finished epic and closes it, using
 [github-epic-close-out](/pg-skills/reference/skills/github-epic-close-out/). "All
 sub-issues are closed" isn't evidence: an issue can close without a merged PR, a PR can
 merge without one of its tasks, and a task can deliver less than the design required.
-The audit is read-only. It reports gaps and doesn't fix them.
+The audit changes no code. It reports gaps and doesn't fix them. The only things it
+writes are its comment and, in the final mode, closing the epic.
 
 ## The two modes
 

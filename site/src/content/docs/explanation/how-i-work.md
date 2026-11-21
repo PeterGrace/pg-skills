@@ -71,7 +71,7 @@ one issue, look at the PR, and only then start the next one.
 
 I curate when the project is new or risky, or when the design is still moving. The
 skills don't describe this as a mode. It's a choice I make, and you can make it
-too. If you're unsure, start by curating: the
+too. The
 [tutorial](/pg-skills/tutorials/first-issue-to-merged-pr/) is one pass of it.
 
 ## How the work gets reviewed and finished
@@ -90,7 +90,7 @@ delivered.
 ## A worked example
 
 This repository's own first milestone, [epic #3](https://github.com/PeterGrace/pg-skills/issues/3),
-went through every step on this page. It had ten sub-issues, one PR each, merged into
+took the epic path on this page. It had ten sub-issues, one PR each, merged into
 `milestone/3-workflow-site`, then the milestone PR
 [#25](https://github.com/PeterGrace/pg-skills/pull/25) into `main`. The
 [pre-merge audit](https://github.com/PeterGrace/pg-skills/issues/3#issuecomment-7063515563)

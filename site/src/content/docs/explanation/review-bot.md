@@ -30,7 +30,7 @@ Her second review found a different problem: a failed write left the output with
 its ownership marker, so every retry refused to replace it. The fix writes the
 marker before any page.
 
-**Plan fidelity.** Does the PR do what the plan and the design said? Each review has
+**Plan fidelity.** Does the PR do what the plan and the design said? Her reviews of code PRs have
 a plan-fidelity section that reads the intent from the plan or design, and rates
 coverage, fidelity, scope discipline and plan integrity.
 
@@ -43,8 +43,7 @@ corrected the plan. She asked for the description to be fixed, and it was. On
 code defect.
 
 **Security.** A blocking security finding with a low score is a trigger for
-escalating a PR from Sonnet to Opus. That is the only place security findings change
-who works on a PR.
+escalating a PR from Sonnet to Opus.
 
 ## Read three real reviews
 
