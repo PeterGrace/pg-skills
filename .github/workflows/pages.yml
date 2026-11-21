@@ -15,11 +15,6 @@ on:
 permissions:
   contents: read
 
-# One deployment at a time; a newer push replaces a queued one.
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
   build:
     name: Build the site
@@ -50,6 +45,12 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    # One deployment at a time; a newer push replaces a queued one. The group is on
+    # this job, not the workflow: pull request builds must not share it, or a PR run
+    # could displace a queued deployment from main.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

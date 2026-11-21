@@ -1003,6 +1003,8 @@ git commit -m "feat(site): add the Starlight site with a generated reference sec
 **Files:**
 - Create: `.github/workflows/pages.yml`
 
+> **Corrected (issue #9, 2026-11-21).** The `concurrency` block moved from the workflow level to the `deploy` job, as below. A workflow-level group made pull request builds share it with production deployments, so a PR update could replace a queued `main` deployment (GitHub keeps one running and one pending run per group). `.github/workflows/pages.yml` is the shipped file.
+
 - [ ] **Step 1: Create the workflow**
 
 ```yaml
@@ -1022,11 +1024,6 @@ on:
 
 permissions:
   contents: read
-
-# One deployment at a time; a newer push replaces a queued one.
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   build:
@@ -1058,6 +1055,12 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    # One deployment at a time; a newer push replaces a queued one. The group is on
+    # this job, not the workflow: pull request builds must not share it, or a PR run
+    # could displace a queued deployment from main.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
