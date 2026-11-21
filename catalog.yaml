@@ -73,7 +73,7 @@ dependencies:
   - id: telekin
     name: Telekin (knowledge catalog)
     kind: mcp-server
-    description: "A long-term memory that AI assistants share, kept as catalogs of notes and served over MCP. The coordinator and close-out skills read and write one if you have it; its site lists early access. The open-source server it is built on, [hypotheosis/okf_mcp](https://github.com/hypotheosis/okf_mcp), can be self-hosted."
+    description: "A long-term memory that AI assistants share, kept as catalogs of notes and served over MCP. The coordinator and close-out skills read and write one if you have it. The open-source server it is built on, [hypotheosis/okf_mcp](https://github.com/hypotheosis/okf_mcp), can be self-hosted."
     url: https://telekin.ai
     note: "The catalog these skills point to is the author's own and private, so you can't read it. Skip those pointers or use your own notes."
   - id: review-bot
