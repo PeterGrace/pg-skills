@@ -434,6 +434,13 @@ Then add these methods:
             pages["plugins/release-tools.md"],
         )
 
+    def test_demote_headings_tracks_fence_marker_and_length(self) -> None:
+        text = "````md\n```\n# literal\n```\n````\n## After\n~~~\n# tilde\n```\n# still tilde\n~~~\n# Out"
+        self.assertEqual(
+            skills.demote_headings(text),
+            "````md\n```\n# literal\n```\n````\n### After\n~~~\n# tilde\n```\n# still tilde\n~~~\n## Out",
+        )
+
     def test_duplicate_agent_names_are_an_error(self) -> None:
         agent = '---\nname: helper\ndescription: "Helps."\n---\n'
         self.write("plugins/release-tools/agents/helper.md", agent)
@@ -459,16 +466,31 @@ Expected: FAIL with `KeyError: 'plugins/release-tools.md'`, `KeyError: 'agents/h
 
 In `tools/skills.py`, add these functions above `reference_pages`:
 
+> **Corrected (issue #6, 2026-11-21).** `demote_headings` tracks the opening fence's character and length and closes only on a matching fence with nothing after it, so nested or mixed fences (a triple-backtick line inside a four-backtick block, `~~~` inside a backtick block) keep their headings. `test_demote_headings_tracks_fence_marker_and_length` covers it.
+
 ```python
 def demote_headings(markdown: str) -> str:
-    """Moves every Markdown heading down one level, leaving fenced code alone."""
+    """Moves every Markdown heading down one level, leaving fenced code alone.
+
+    A fence closes only on a line of the opener's character, at least as long as the
+    opener, with nothing after it, so other fence-like lines inside it stay code.
+    """
     lines: list[str] = []
-    fenced = False
+    opener: tuple[str, int] | None = None
     for line in markdown.splitlines():
-        if line.lstrip().startswith(("```", "~~~")):
-            fenced = not fenced
-        elif not fenced and re.match(r"#{1,5} ", line):
-            line = "#" + line
+        fence = re.match(r" {0,3}(`{3,}|~{3,})(.*)$", line)
+        if opener is None:
+            if fence and not (fence.group(1)[0] == "`" and "`" in fence.group(2)):
+                opener = (fence.group(1)[0], len(fence.group(1)))
+            elif re.match(r"#{1,5} ", line):
+                line = "#" + line
+        elif (
+            fence
+            and fence.group(1)[0] == opener[0]
+            and len(fence.group(1)) >= opener[1]
+            and not fence.group(2).strip()
+        ):
+            opener = None
         lines.append(line)
     return "\n".join(lines)
 

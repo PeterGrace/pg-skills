@@ -357,6 +357,13 @@ class ReferenceTest(RepoTestCase):
             pages["plugins/release-tools.md"],
         )
 
+    def test_demote_headings_tracks_fence_marker_and_length(self) -> None:
+        text = "````md\n```\n# literal\n```\n````\n## After\n~~~\n# tilde\n```\n# still tilde\n~~~\n# Out"
+        self.assertEqual(
+            skills.demote_headings(text),
+            "````md\n```\n# literal\n```\n````\n### After\n~~~\n# tilde\n```\n# still tilde\n~~~\n## Out",
+        )
+
     def test_duplicate_agent_names_are_an_error(self) -> None:
         agent = '---\nname: helper\ndescription: "Helps."\n---\n'
         self.write("plugins/release-tools/agents/helper.md", agent)

@@ -670,14 +670,27 @@ def skill_page(
 
 
 def demote_headings(markdown: str) -> str:
-    """Moves every Markdown heading down one level, leaving fenced code alone."""
+    """Moves every Markdown heading down one level, leaving fenced code alone.
+
+    A fence closes only on a line of the opener's character, at least as long as the
+    opener, with nothing after it, so other fence-like lines inside it stay code.
+    """
     lines: list[str] = []
-    fenced = False
+    opener: tuple[str, int] | None = None
     for line in markdown.splitlines():
-        if line.lstrip().startswith(("```", "~~~")):
-            fenced = not fenced
-        elif not fenced and re.match(r"#{1,5} ", line):
-            line = "#" + line
+        fence = re.match(r" {0,3}(`{3,}|~{3,})(.*)$", line)
+        if opener is None:
+            if fence and not (fence.group(1)[0] == "`" and "`" in fence.group(2)):
+                opener = (fence.group(1)[0], len(fence.group(1)))
+            elif re.match(r"#{1,5} ", line):
+                line = "#" + line
+        elif (
+            fence
+            and fence.group(1)[0] == opener[0]
+            and len(fence.group(1)) >= opener[1]
+            and not fence.group(2).strip()
+        ):
+            opener = None
         lines.append(line)
     return "\n".join(lines)
 
