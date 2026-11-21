@@ -2,7 +2,7 @@
 title: Close out an epic
 description: Audit an epic against its plan and design before and after the milestone merge with github-epic-close-out, and avoid closing keywords in the milestone PR.
 sidebar:
-  order: 4
+  order: 8
 ---
 
 This guide audits a finished epic and closes it, using

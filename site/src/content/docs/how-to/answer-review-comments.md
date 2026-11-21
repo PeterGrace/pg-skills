@@ -2,7 +2,7 @@
 title: Answer review comments
 description: Walk the comments on an open pull request one at a time with github-address-pr-review, and ask for another review when the feedback needs another look.
 sidebar:
-  order: 3
+  order: 7
 ---
 
 This guide answers a reviewer's feedback on an open PR with
