@@ -260,6 +260,23 @@ the deferred items still flagged, or resolves them, now or later.
 **Notes:** deferred findings stay marked in the guide, so the guide is usable before
 every finding is resolved.
 
+### Which models do I use for writing and checking a guide?
+
+**Answer:** "I generally use a opus writes / sonnet checks workflow with the study
+guide."
+
+**Notes:** the skills ask only that the two passes run on different models, without
+naming any. Peter's usual pairing is Opus to write and Sonnet to fact-check. He added
+this on 2026-11-21, after area 4 was published.
+
+### How do I switch models for the check?
+
+**Answer:** "I use /model in a fresh new claude code window usually."
+
+**Notes:** this gives the check a fresh context as well as a different model: a new
+session, then `/model`. Running `/model` in the writer's own session would leave the
+writing conversation in context.
+
 ## 6. The supporting setup
 
 ### What does the knowledge catalog give me that CLAUDE.md and built-in memory don't?
