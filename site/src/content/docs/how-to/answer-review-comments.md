@@ -1,6 +1,6 @@
 ---
 title: Answer review comments
-description: Walk the comments on an open pull request one at a time with github-address-pr-review, and re-request a review only after you push a new commit.
+description: Walk the comments on an open pull request one at a time with github-address-pr-review, and ask for another review when the feedback needs another look.
 sidebar:
   order: 3
 ---
@@ -40,7 +40,7 @@ If you've never seen an automated review, look at one first, such as
 8. Read the final report: counts per disposition, a table of each comment, the commit
    SHAs, the validation results and the push status.
 
-The skill doesn't resolve threads. It posts replies only.
+The skill doesn't resolve threads.
 
 ## Fork PRs and diverged branches
 
@@ -50,15 +50,18 @@ in a reply for the author to apply.
 
 ## Asking for a second review
 
-Re-request a review only after a new commit. My reviewer, Brooke, won't re-review a head
-she has already reviewed. On
+Ask for another review when your replies or commits mean the feedback needs another
+look. A human reviewer can read your explanation and approve the same head, so with a
+person there is no need to push anything first.
+
+Bots can differ. My reviewer, Brooke, won't re-review a head she has already reviewed. On
 [PR #29](https://github.com/PeterGrace/pg-skills/pull/29) she answered a re-request on an
 unchanged head with: "re-reviewing identical code would only burn tokens". The
-address round there changed no code, only the description, so no second review was
-possible.
+round before had changed code and was reviewed; the round that followed corrected only
+the PR description, so there was no new commit for her to review.
 
-Whatever reviewer you use, the rule is the same: if you pushed commits, ask again. If
-you only replied, don't.
+With a bot like Brooke, ask again after you push commits, and don't when you only
+replied. Check how your own reviewer behaves.
 
 An epic's coordinator counts address rounds. After two Sonnet rounds with blocking comments
 still open, Opus takes over the PR.

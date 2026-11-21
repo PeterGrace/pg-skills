@@ -95,5 +95,5 @@ comments.
 Bots skip things. A reviewer may skip a stale branch, or miss a request, and the PR
 sits. The skills handle this by reading the bot's own comments first. Brooke
 declines to review a head she has already reviewed: on PR #29 she said that
-re-reviewing identical code would only burn tokens. So ask again only after a new
+re-reviewing identical code would only burn tokens. So with Brooke, ask again after a new
 commit.

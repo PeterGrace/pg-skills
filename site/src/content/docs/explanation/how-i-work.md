@@ -31,7 +31,7 @@ Once there's a spec, I pick by size and shape:
 
 I keep burndown to this paragraph here. It has its own pages later. The skill's
 reference page is [github-issue-burndown](/pg-skills/reference/skills/github-issue-burndown/).
-The same goes for the claims audit that runs on every PR
+The same goes for the claims audit that `github-issue-to-pr` runs before it opens a PR
 ([github-issue-to-pr](/pg-skills/reference/skills/github-issue-to-pr/)), the study
 guides ([study-guides](/pg-skills/reference/plugins/study-guides/)) and the
 supporting setup (the knowledge catalog, the model policy and the

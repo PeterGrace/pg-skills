@@ -9,8 +9,11 @@ This guide audits a finished epic and closes it, using
 [github-epic-close-out](/pg-skills/reference/skills/github-epic-close-out/). "All
 sub-issues are closed" isn't evidence: an issue can close without a merged PR, a PR can
 merge without one of its tasks, and a task can deliver less than the design required.
-The audit changes no code. It reports gaps and doesn't fix them. The only things it
-writes are its comment and, in the final mode, closing the epic.
+The audit changes no code. It reports gaps and doesn't fix them. It posts its comment on
+the epic and, in the final mode, closes the epic. If you keep a knowledge catalog, it
+also records the outcome there: a dated line in the project's concept and a `log.md`
+entry, plus any follow-up left unfiled in `/projects/things-to-fix.md` if you decided
+not to fix it now. The catalog is optional.
 
 ## The two modes
 
@@ -58,7 +61,7 @@ If the epic has no milestone branch, run only the final mode.
    [final audit on epic #3](https://github.com/PeterGrace/pg-skills/issues/3#issuecomment-7063711827).
    If it doesn't validate, it posts the gaps and leaves the epic open.
 
-Follow-ups it finds are listed with proposed titles. It files them only if you say so.
+Follow-ups it finds are listed with proposed titles. It files them only if you say so, or said so earlier in the session.
 
 ## The closing-keyword trap
 

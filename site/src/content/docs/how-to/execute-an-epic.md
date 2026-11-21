@@ -88,7 +88,7 @@ I named four. Each one has a recorded incident, and most have a rule in the skil
   it.
 - **Scope creep.** Follow-ups and audit findings grow the epic past the plan. Decide which
   follow-ups belong in the epic, and ask once, in a batch. The close-out lists
-  follow-ups and files them only when you say so.
+  follow-ups and files them only when you say so, or said so earlier in the session.
 
 ## A worked example
 
