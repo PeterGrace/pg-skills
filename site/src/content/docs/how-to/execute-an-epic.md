@@ -10,7 +10,8 @@ This guide runs an epic's sub-issues to merged PRs with the
 skill. You are the coordinator's user: the skill coordinates, and an
 [issue-implementer](/pg-skills/reference/agents/issue-implementer/) subagent
 implements each issue. You need an epic whose sub-issues exist and are linked by
-blocked-by edges. If you don't have one,
+blocked-by edges, and a [review bot or a human reviewer](/pg-skills/reference/dependencies/#review-bot)
+for the PRs. If you don't have an epic,
 [plan a milestone](/pg-skills/how-to/plan-a-milestone/) first.
 
 For the reasoning, read

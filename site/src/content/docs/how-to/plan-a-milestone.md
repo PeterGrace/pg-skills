@@ -19,8 +19,8 @@ acceptance only, never code.
 
 - Check the design is right. This is the part I read closely: I approve the spec and
   not the plan.
-- The skill writes the plan with the `writing-plans` skill from the superpowers
-  plugin, so install that too.
+- The skill writes the plan with the `writing-plans` skill from the
+  [superpowers](/pg-skills/reference/dependencies/#superpowers) plugin, so install that too.
 - Have a recent plan and changelog from an earlier milestone, if there is one. The
   skill copies its conventions.
 

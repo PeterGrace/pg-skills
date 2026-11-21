@@ -75,9 +75,57 @@ Every frontmatter rule the validator enforces is in
 ## 4. Update the catalog and versions
 
 1. Add the skill's name to its plugin's `skills:` list in `catalog.yaml`.
-2. **Bump the plugin's `version`** for any change to its skills: patch for fixes, minor
+2. **Declare what the skill needs that this repository doesn't ship**, such as another
+   skill pack, an MCP server, a CLI or a service. Read the skill's text to find each one,
+   and don't guess. See "Declaring dependencies" below.
+3. **Bump the plugin's `version`** for any change to its skills: patch for fixes, minor
    for new skills or behavior. Claude Code treats the version as a pin, so without a bump
    existing installs never receive the change.
+
+### Declaring dependencies
+
+`catalog.yaml` has a top-level `dependencies:` registry. The site's dependencies page and
+the **Requires** sections of the plugin and skill pages are generated from it.
+
+```yaml
+dependencies:
+  - id: superpowers              # kebab-case, unique
+    name: superpowers
+    kind: skill-pack             # skill-pack, skill, mcp-server, cli or service
+    description: "A skill pack for coding agents."   # one sentence
+    url: https://github.com/obra/superpowers         # public, https://
+    install: "In Claude Code, `/plugin install superpowers@claude-plugins-official`."
+  - id: review-bot
+    name: A review bot or a human reviewer
+    kind: service
+    description: "Something that reviews each pull request."
+    note: "Use any review bot, or review the PRs yourself."   # for a service with no url
+```
+
+- **`url`** is required except for a `service` with no public home, which needs a `note`
+  saying what to use instead. Check that every repository you link is public
+  (`gh repo view <owner>/<repo> --json visibility`), and never link a private one.
+- **`install`** is optional. Take it from the project's own README or docs, or leave it out.
+- **Requiring a dependency.** Put `requires:` on a plugin for what every skill in it
+  needs, or on one skill by writing it as a mapping instead of a bare name:
+
+  ```yaml
+  requires:                                  # on a plugin
+    - {id: gh, for: "reading and filing issues"}
+  skills:
+    - plain-skill                            # the string form stays valid
+    - name: planning-skill                   # the mapping form
+      requires:
+        - {id: superpowers, for: "writing the plan"}
+        - {id: review-bot, optional: true, for: "an extra review"}
+  ```
+
+  Each item is `{id, for, optional?}`. `for` says what the dependency is used for;
+  `optional` defaults to `false`.
+- **Validation** fails on an unknown key, an unknown kind, a duplicate id, a `url` that
+  isn't `https://`, a `requires` id that isn't in `dependencies`, and a dependency that
+  nothing requires.
+- `requires` appears only on the site. It is not copied into any generated manifest.
 
 ## 5. Regenerate and check
 
