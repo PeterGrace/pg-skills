@@ -838,13 +838,14 @@ def write_reference(out: Path, pages: dict[str, str]) -> None:
             )
         shutil.rmtree(out)
     out.mkdir(parents=True)
+    # The marker goes first, so a failed page write still leaves a directory a retry may replace.
+    (out / GENERATED_MARKER).write_text(
+        "Written by tools/skills.py reference. Safe to delete.\n", encoding="utf-8"
+    )
     for rel, text in pages.items():
         target = out / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding="utf-8")
-    (out / GENERATED_MARKER).write_text(
-        "Written by tools/skills.py reference. Safe to delete.\n", encoding="utf-8"
-    )
 
 
 def main(argv: Sequence[str] | None = None) -> int:

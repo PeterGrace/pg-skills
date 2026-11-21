@@ -467,6 +467,23 @@ class ReferenceTest(RepoTestCase):
         self.assertEqual(code, 1)
         self.assertIn("error: disk full", err)
 
+    def test_write_failure_midway_leaves_output_that_can_be_replaced(self) -> None:
+        out = self.root / "out"
+        skills.write_reference(out, {"a.md": "1"})
+        real = Path.write_text
+
+        def flaky(path: Path, *args: object, **kwargs: object) -> int:
+            if path.name == "b.md":
+                raise OSError("disk full")
+            return real(path, *args, **kwargs)  # type: ignore[arg-type]
+
+        with unittest.mock.patch.object(Path, "write_text", flaky):
+            with self.assertRaisesRegex(OSError, "disk full"):
+                skills.write_reference(out, {"a.md": "1", "b.md": "2"})
+        self.assertTrue((out / skills.GENERATED_MARKER).is_file())
+        skills.write_reference(out, {"a.md": "1", "b.md": "2"})
+        self.assertEqual((out / "b.md").read_text(encoding="utf-8"), "2")
+
 
 if __name__ == "__main__":
     unittest.main()
