@@ -254,3 +254,55 @@ the deferred items still flagged, or resolves them, now or later.
 every finding is resolved.
 
 ## 6. The supporting setup
+
+### What does the knowledge catalog give me that CLAUDE.md and built-in memory don't?
+
+**Answer:** all four, plus: "It enriches essentially every interaction I have with an
+LLM these days."
+- **Shared across projects:** every session and project reads the same place.
+- **Reviewed and versioned:** changesets, history and revert, so Peter can audit and
+  undo what an agent wrote.
+- **Lessons compound:** a failure in one project becomes a rule that every later
+  session sees.
+- **Works beyond Claude Code:** any MCP harness can read and write it, even without a
+  filesystem.
+
+**Notes:** for the explanation page "The knowledge catalog as long-term memory".
+Epic #3's own example: the Brooke behaviours learned on earlier projects, such as
+stale-branch skips and no re-review of an unchanged head, were already in the
+catalog when this epic ran.
+
+### Why Sonnet first, with Opus only on a recorded trigger?
+
+**Answer:** the usage limit, and keeping judgment at the top.
+- **The usage limit:** Opus implementers were most of the weekly spend.
+- **Judgment at the top:** planning, design and coordination are where the stronger
+  model pays off.
+
+**Notes:** Peter's reasons don't include that Sonnet is enough or that escalation is
+rare, though epic #3 escalated zero times. The site can give that as an observation,
+not as Peter's reason.
+
+### Which shared-machine rule comes first for a copier?
+
+**Answer:** "Worktree per agent is table stakes but the rest of these are also
+incredibly important, they're equally important but the worktree per agent is first
+among equals for sure."
+
+**Notes:** the explanation page should present the rest as equally important. Each
+one came from an incident:
+- bound and serialize the gates;
+- mind the disk: build caches per worktree, and `cargo clean` before removing one;
+- never touch other sessions' processes or caches: kill by PID only, no pattern
+  kills, no machine-wide prunes.
+
+### What should a copier without Brooke use?
+
+**Answer:** any review bot, or a human reviewer. "prrb isn't a public product yet."
+
+**Notes:**
+- Don't link to prrb or present it as installable.
+- The site can describe what Brooke checks, as an example of what a reviewer should
+  check.
+- The how-to "Adapt the skills to your setup" should cover switching the reviewer:
+  the bot's login, its re-trigger command and the watcher scripts.
