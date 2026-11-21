@@ -11,6 +11,7 @@ Everything `generate` writes is an output; never edit those files by hand.
 Usage (from the repository root):
     uv run --script tools/skills.py validate
     uv run --script tools/skills.py generate [--check]
+    uv run --script tools/skills.py reference --out DIR --repo OWNER/NAME --url-prefix PATH
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ import argparse
 import html
 import json
 import re
+import shutil
 import sys
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -745,7 +747,11 @@ def plugin_page(
 def agent_page(plugin: Plugin, path: Path, ctx: SiteContext, order: int) -> tuple[str, str]:
     """Returns an agent's name and its reference page."""
     front, rules = read_frontmatter(path)
-    name = str(front.get("name", path.stem))
+    name = front.get("name", path.stem)
+    problem = name_problem(name)
+    if problem:
+        raise ValueError(f"{path}: agent {problem}")
+    name = str(name)
     description = str(front.get("description", ""))
     source = f"{PLUGINS_DIR}/{plugin.name}/{AGENTS_DIR}/{path.name}"
     body = [
@@ -812,6 +818,36 @@ def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str,
     return dict(sorted(pages.items()))
 
 
+def write_reference(out: Path, pages: dict[str, str]) -> None:
+    """Replaces `out` with exactly `pages`, if `out` is missing or was written by this tool.
+
+    Every page path must stay inside `out`; this is checked before anything is deleted.
+    """
+    base = out.resolve()
+    for rel in pages:
+        if not (base / rel).resolve().is_relative_to(base) or Path(rel).is_absolute():
+            raise ValueError(f"page path {rel!r} is outside {out}; refusing to write")
+    if out.exists():
+        foreign = not out.is_dir() or (
+            any(out.iterdir()) and not (out / GENERATED_MARKER).is_file()
+        )
+        if foreign:
+            raise ValueError(
+                f"{out} has files this tool did not write (no {GENERATED_MARKER} marker); "
+                "refusing to replace it"
+            )
+        shutil.rmtree(out)
+    out.mkdir(parents=True)
+    # The marker goes first, so a failed page write still leaves a directory a retry may replace.
+    (out / GENERATED_MARKER).write_text(
+        "Written by tools/skills.py reference. Safe to delete.\n", encoding="utf-8"
+    )
+    for rel, text in pages.items():
+        target = out / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
     parser.add_argument("--root", type=Path, default=Path("."), help="repository root")
@@ -821,6 +857,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     gen.add_argument(
         "--check", action="store_true", help="fail if a generated file is out of date"
     )
+    ref = commands.add_parser("reference", help="write the documentation site's reference pages")
+    ref.add_argument("--out", type=Path, required=True, help="directory to replace")
+    ref.add_argument("--repo", required=True, help="GitHub repository, as owner/name")
+    ref.add_argument("--url-prefix", required=True, help="URL path the pages are served under")
     args = parser.parse_args(argv)
     root: Path = args.root
 
@@ -834,6 +874,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "validate":
         skills = sum(len(plugin.skills) for plugin in report.catalog.plugins)
         print(f"ok: {len(report.catalog.plugins)} plugins, {skills} skills")
+        return 0
+
+    if args.command == "reference":
+        try:
+            pages = reference_pages(root, report.catalog, SiteContext(args.repo, args.url_prefix))
+            write_reference(args.out, pages)
+        except (ValueError, OSError, yaml.YAMLError) as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 1
+        print(f"wrote {len(pages)} reference pages to {args.out}")
         return 0
 
     files = generate(report.catalog)

@@ -364,6 +364,8 @@ def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str,
     return dict(sorted(pages.items()))
 ```
 
+> **Corrected (issue #7, 2026-11-21, review round 1).** `agent_page` above now rejects an agent `name` that fails `name_problem()`, because the name becomes a path under `agents/`. Its test is `test_agent_name_cannot_escape_the_output_directory`, added in Task 4.
+
 - [ ] **Step 4: Run the tests**
 
 Run: `just test`
@@ -545,7 +547,11 @@ def plugin_page(
 def agent_page(plugin: Plugin, path: Path, ctx: SiteContext, order: int) -> tuple[str, str]:
     """Returns an agent's name and its reference page."""
     front, rules = read_frontmatter(path)
-    name = str(front.get("name", path.stem))
+    name = front.get("name", path.stem)
+    problem = name_problem(name)
+    if problem:
+        raise ValueError(f"{path}: agent {problem}")
+    name = str(name)
     description = str(front.get("description", ""))
     source = f"{PLUGINS_DIR}/{plugin.name}/{AGENTS_DIR}/{path.name}"
     body = [
@@ -675,7 +681,14 @@ Add `import shutil` to the imports (after `import re`), then add after `referenc
 
 ```python
 def write_reference(out: Path, pages: dict[str, str]) -> None:
-    """Replaces `out` with exactly `pages`, if `out` is missing or was written by this tool."""
+    """Replaces `out` with exactly `pages`, if `out` is missing or was written by this tool.
+
+    Every page path must stay inside `out`; this is checked before anything is deleted.
+    """
+    base = out.resolve()
+    for rel in pages:
+        if not (base / rel).resolve().is_relative_to(base) or Path(rel).is_absolute():
+            raise ValueError(f"page path {rel!r} is outside {out}; refusing to write")
     if out.exists():
         foreign = not out.is_dir() or (
             any(out.iterdir()) and not (out / GENERATED_MARKER).is_file()
@@ -687,13 +700,14 @@ def write_reference(out: Path, pages: dict[str, str]) -> None:
             )
         shutil.rmtree(out)
     out.mkdir(parents=True)
+    # The marker goes first, so a failed page write still leaves a directory a retry may replace.
+    (out / GENERATED_MARKER).write_text(
+        "Written by tools/skills.py reference. Safe to delete.\n", encoding="utf-8"
+    )
     for rel, text in pages.items():
         target = out / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding="utf-8")
-    (out / GENERATED_MARKER).write_text(
-        "Written by tools/skills.py reference. Safe to delete.\n", encoding="utf-8"
-    )
 ```
 
 In `main`, register the subcommand after the `generate` parser:
@@ -728,12 +742,20 @@ Also update the module docstring's usage block with one line:
 - [ ] **Step 4: Run the full check**
 
 Run: `just check`
-Expected: validation `ok`, generated files current, mypy prints nothing, and the tests end `OK` (33 tests).
+Expected: validation `ok`, generated files current, mypy prints nothing, and the tests end `OK` (40 tests).
+
+> **Corrected (issue #7, 2026-11-21).** The count is 40, not 33: Task 3 gained a test for fence handling (`test_demote_headings_tracks_fence_marker_and_length`), so 31 tests precede Task 4, which adds the three above plus six from review: `test_write_failure_midway_leaves_output_that_can_be_replaced`, `test_agent_name_cannot_escape_the_output_directory`, `test_write_refuses_paths_outside_the_output_before_deleting`, `test_main_reference_reports_a_foreign_output_directory`, `test_main_reference_reports_a_malformed_agent` and `test_main_reference_reports_a_write_failure` (in the repository, via `run_main` and `reference_args` helpers).
+
+> **Corrected (issue #7, 2026-11-21, review round 1).** `agent_page` (Task 3) now validates the agent's `name` with `name_problem()` and raises `ValueError`, and `write_reference` refuses any page path that resolves outside `out` before deleting anything. An agent name such as `../../README` would otherwise have written outside the output directory. Both code blocks in this plan are updated.
+
+> **Corrected (issue #7, 2026-11-21, review round 2).** `write_reference` now writes the `.generated` marker right after recreating `out`, before any page. Otherwise a page write that failed after the old output was deleted left a directory with no marker, and every retry refused it as foreign. The Task 4 code block above is updated.
 
 - [ ] **Step 5: Try it on the real repo**
 
 Run: `uv run --quiet --script tools/skills.py reference --out /tmp/pgref --repo PeterGrace/pg-skills --url-prefix /pg-skills/reference && ls -R /tmp/pgref | head -40 && sed -n '1,30p' /tmp/pgref/agents/issue-implementer.md`
-Expected: `wrote 24 reference pages` (4 plugins, 18 skills, 1 agent, 1 glossary), files under `plugins/`, `skills/`, `agents/`, and an agent page whose table says ``| Subagent type | `github-workflows:issue-implementer` |``. Then `rm -r /tmp/pgref`. If the count differs, check that every catalog skill has a page before going on.
+Expected: `wrote 24 reference pages` (4 plugins, 18 skills, 1 agent, 1 glossary), files under `plugins/`, `skills/`, `agents/`, and an agent page whose table says ``| Subagent type | `github-workflows:issue-implementer` |``. Then `rm -r /tmp/pgref`.
+
+> **Corrected (issue #7, 2026-11-21).** Write the trial output under the worktree's ignored `target/` rather than `/tmp`, never into `site/`. If the count differs, check that every catalog skill has a page before going on.
 
 - [ ] **Step 6: Correct the spec**
 
@@ -1202,7 +1224,7 @@ Run: `rm -rf site/dist && just check && bash -o pipefail -c 'just site-build 2>&
 The command must exit 0. Removing `site/dist` first means Step 2 can only see files this
 build wrote, and `pipefail` makes a failed build fail the command rather than reporting
 `tail`'s success.
-Expected: tests `OK` (33), `wrote 24 reference pages`, and a site build reporting
+Expected: tests `OK` (40), `wrote 24 reference pages`, and a site build reporting
 that every internal link is valid.
 
 - [ ] **Step 2: Check the built site**
