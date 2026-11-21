@@ -15,8 +15,46 @@ plugins:
   # Each plugin's skills live in plugins/<name>/skills/<skill>/.
   - name: skill-authoring
     description: "Skills for writing and maintaining the agent skills in this repository."
-    version: 0.1.0
+    version: 0.1.1
     category: Developer Tools
     keywords: [skills, authoring]
     skills:
       - authoring-skills
+
+  - name: github-workflows
+    description: "Issue-to-merged-PR workflows on GitHub with the gh CLI: planning features and milestones into issues, grooming and splitting issues, implementing them in worktrees with subagents, answering review-bot feedback, burning down a backlog and closing out epics. Ships the issue-implementer subagent."
+    version: 0.1.0
+    category: Developer Tools
+    keywords: [github, gh, issues, pull-requests, subagents, code-review]
+    skills:
+      - github-plan-to-issue
+      - github-milestone-plan-to-issues
+      - github-groom-issue
+      - github-issue-to-subissues
+      - github-issue-to-pr
+      - github-address-pr-review
+      - github-epic-to-merged-prs
+      - github-issue-burndown
+      - github-epic-close-out
+
+  - name: forgejo-workflows
+    description: "Issue-to-PR workflows on Forgejo through the forgejo-mcp server: planning features into issues, grooming and splitting issues, implementing an issue as a pull request, and walking through review comments. Its subagent fan-out uses the issue-implementer agent from github-workflows."
+    version: 0.1.0
+    category: Developer Tools
+    keywords: [forgejo, issues, pull-requests, mcp]
+    skills:
+      - forgejo-plan-to-issue
+      - forgejo-groom-issue
+      - forgejo-issue-to-subissues
+      - forgejo-issue-to-pr
+      - forgejo-address-pr-review
+
+  - name: study-guides
+    description: "Skills for writing grounded study documentation for a codebase (architecture overview, module deep dives, glossary, flashcards), fact-checking it against the code, and reconciling the fact-check back into the docs."
+    version: 0.1.0
+    category: Productivity
+    keywords: [documentation, onboarding, study-guide, flashcards]
+    skills:
+      - codebase-study-guide
+      - study-guide-fact-check
+      - study-guide-reconcile

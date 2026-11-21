@@ -1,11 +1,11 @@
 ---
 name: authoring-skills
-description: "Adds or changes an agent skill in the PeterGrace/pg-agent-skills repository, from SKILL.md and catalog.yaml through regenerating manifests, checks, and pushing a release. Use when asked to write, add, edit, rename or remove a skill or plugin in pg-agent-skills, or when a change there fails `just check`."
+description: "Adds or changes an agent skill in the PeterGrace/pg-skills repository, from SKILL.md and catalog.yaml through regenerating manifests, checks, and pushing a release. Use when asked to write, add, edit, rename or remove a skill or plugin in pg-skills, or when a change there fails `just check`."
 ---
 
-# Authoring skills in pg-agent-skills
+# Authoring skills in pg-skills
 
-Work in a checkout of `PeterGrace/pg-agent-skills`. Every push to `main` that passes CI
+Work in a checkout of `PeterGrace/pg-skills`. Every push to `main` that passes CI
 is released automatically, so use a branch and a pull request for anything you want CI
 to check before it ships.
 
@@ -49,12 +49,18 @@ description: "<what it does>. Use when <the situations that call for it>."
   check before finishing. Leave out background the agent doesn't need to act.
 - **Keep `SKILL.md` under 500 lines.** Move long material to `references/<topic>.md`
   and link it from the step where it's needed.
-- **Keep it free of secrets and private details.** Anything here is installable by
-  every client that can read the repo.
+- **Keep it free of secrets.** The repo is public. Naming pgrace's own bots, servers
+  and conventions is fine, but give each one an entry in `GLOSSARY.md` that says what
+  it is and what a reader should change.
+- **Refer to other plugin skills and agents by namespaced name**
+  (`github-workflows:issue-implementer`), and to the skill's own files as
+  `${CLAUDE_SKILL_DIR}/...`. Never use a home-directory path such as `~/.agents/skills`.
+- **A plugin can ship Claude Code subagents** as `plugins/<plugin>/agents/<agent>.md`.
+  They load without any manifest entry, named `<plugin>:<agent>`.
 
 Every frontmatter rule the validator enforces is in
 [references/frontmatter.md](references/frontmatter.md). Read it before adding
-`license`, `compatibility`, `metadata` or `allowed-tools`.
+`license`, `compatibility`, `metadata`, `allowed-tools` or a Claude Code key.
 
 ## 3. Scripts (only if the skill needs one)
 

@@ -101,6 +101,32 @@ class ValidateTest(RepoTestCase):
         )
         self.assert_error("unknown top-level frontmatter key 'version'")
 
+    def test_claude_code_keys_are_accepted(self) -> None:
+        extra = (
+            'argument-hint: "[issue]"\ndisable-model-invocation: true\n'
+            "user-invocable: false\nallowed-tools: [Read, Grep]\nmodel: sonnet\n"
+            "effort: high\ncontext: fork\nagent: Explore\npaths: ['**/*.rs']\n"
+            "hooks:\n  PreToolUse: []\n"
+        )
+        self.write(
+            "plugins/writing/skills/commit-messages/SKILL.md", skill_md("commit-messages", extra)
+        )
+        self.assertEqual(self.messages(), [])
+
+    def test_claude_code_key_types_are_checked(self) -> None:
+        self.write(
+            "plugins/writing/skills/commit-messages/SKILL.md",
+            skill_md("commit-messages", 'disable-model-invocation: "yes"\n'),
+        )
+        self.assert_error("disable-model-invocation must be true or false")
+
+    def test_claude_code_key_choices_are_checked(self) -> None:
+        self.write(
+            "plugins/writing/skills/commit-messages/SKILL.md",
+            skill_md("commit-messages", "effort: extreme\n"),
+        )
+        self.assert_error("effort must be one of")
+
     def test_metadata_values_must_be_strings(self) -> None:
         self.write(
             "plugins/writing/skills/commit-messages/SKILL.md",

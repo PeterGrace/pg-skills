@@ -1,4 +1,4 @@
-# pg-agent-skills
+# pg-skills
 
 My personal AI agent skills: one place to write and version them, installable in Claude
 Code, Claude apps, GitHub Copilot CLI, OpenAI Codex, Cursor and Gemini CLI.
@@ -12,6 +12,8 @@ tooling is one self-contained script, `tools/skills.py`, run through `just` and 
 |---|---|---|
 | `catalog.yaml` | The plugins, and which skills each one ships | yes |
 | `plugins/<plugin>/skills/<skill>/` | One skill: `SKILL.md` plus optional `references/`, `scripts/`, `assets/` | yes |
+| `plugins/<plugin>/agents/` | Claude Code subagents the plugin ships (found automatically; named `<plugin>:<agent>`) | yes |
+| `GLOSSARY.md` | The personal names and conventions the skills use, and how to adapt them | yes |
 | `tools/skills.py` | Validates the catalog and skills, and generates the manifests | yes |
 | `tests/` | Tests for the tool, and for skill scripts in `tests/skill_scripts/` (kept out of the skills so they aren't shipped) | yes |
 | `.claude-plugin/`, `.github/plugin/`, `.agents/plugins/`, `.cursor-plugin/` | Vendor marketplace files | **no, generated** |
@@ -21,16 +23,27 @@ Generated files are rebuilt by `just generate`, and CI fails if they are out of 
 
 ## Installing the skills
 
-The marketplace is named **`pg-skills`**. Plugins today: `skill-authoring`.
+The marketplace is named **`pg-skills`**. The skills are written for my own setup and
+name my review bot, servers and conventions; [GLOSSARY.md](GLOSSARY.md) explains each
+one and what to change to adapt it.
+
+| Plugin | What it does |
+|---|---|
+| `github-workflows` | Issue-to-merged-PR workflows on GitHub with `gh`: plan, groom and split issues, implement them with subagents in worktrees, answer review-bot feedback, burn down a backlog, close out epics. Ships the `issue-implementer` subagent. |
+| `forgejo-workflows` | The same planning, grooming and issue-to-PR workflows on Forgejo, through forgejo-mcp. Its subagent fan-out needs `github-workflows` installed too, for `issue-implementer`. |
+| `study-guides` | Write study docs for a codebase, fact-check them against the code, and reconcile the fact-check back in. |
+| `skill-authoring` | How to add or change a skill in this repository. |
+
+The examples below install `skill-authoring`; substitute any plugin name.
 
 | Client | How |
 |---|---|
-| **Claude Code** | `/plugin marketplace add PeterGrace/pg-agent-skills`, then `/plugin install skill-authoring@pg-skills` (or `claude plugin install ...` from a shell) |
+| **Claude Code** | `/plugin marketplace add PeterGrace/pg-skills`, then `/plugin install skill-authoring@pg-skills` (or `claude plugin install ...` from a shell) |
 | **Claude apps** (claude.ai, desktop) | *Customize*, *Plugins*, *Add marketplace*, and give it this repo. |
-| **GitHub Copilot CLI** | `copilot plugin marketplace add PeterGrace/pg-agent-skills`, then `copilot plugin install skill-authoring@pg-skills` |
-| **OpenAI Codex** (CLI and desktop app) | `codex plugin marketplace add PeterGrace/pg-agent-skills`, then install from `/plugins` in the CLI or the app's Plugins directory. The IDE extension doesn't support plugins. |
+| **GitHub Copilot CLI** | `copilot plugin marketplace add PeterGrace/pg-skills`, then `copilot plugin install skill-authoring@pg-skills` |
+| **OpenAI Codex** (CLI and desktop app) | `codex plugin marketplace add PeterGrace/pg-skills`, then install from `/plugins` in the CLI or the app's Plugins directory. The IDE extension doesn't support plugins. |
 | **Cursor** | *Customize*, *Plugins*, add this repo as a marketplace, tracking `main`. |
-| **Gemini CLI** | Gemini can't install an extension from a repo subfolder, so clone first: `git clone git@github.com:PeterGrace/pg-agent-skills.git`, then `gemini extensions install ./pg-agent-skills/plugins/skill-authoring` |
+| **Gemini CLI** | Gemini can't install an extension from a repo subfolder, so clone first: `git clone git@github.com:PeterGrace/pg-skills.git`, then `gemini extensions install ./pg-skills/plugins/skill-authoring` |
 
 ## Adding or changing a skill
 
@@ -64,9 +77,17 @@ ask it to add a skill.
      when to use it*. It must be 1-1024 characters. Always wrap it in double quotes,
      here and in `catalog.yaml`: unquoted, ` #` starts a YAML comment and silently
      truncates the text, and `just check` doesn't catch it.
-   - **Only spec fields are allowed at the top level:** `name`, `description`,
-     `license`, `compatibility`, `metadata`, `allowed-tools`. Any other key is an
-     error; put extras under `metadata`, with string values.
+   - **Top-level keys are the spec's** (`name`, `description`, `license`,
+     `compatibility`, `metadata`, `allowed-tools`) **plus Claude Code's** (such as
+     `argument-hint`, `disable-model-invocation`, `user-invocable`, `model`,
+     `context`, `agent`, `paths`). Any other key is an error; put extras under
+     `metadata`, with string values. claude.ai and the Skills API refuse uploads with
+     Claude Code keys, so leave them out of skills meant for those.
+   - **Refer to other plugin skills and agents by their namespaced name**
+     (`github-workflows:issue-implementer`), and to files in the skill with
+     `${CLAUDE_SKILL_DIR}`, never a home-directory path.
+   - **Name anything personal in [GLOSSARY.md](GLOSSARY.md)**: bots, servers, repos and
+     conventions a reader would have to swap for their own.
    - **Keep `SKILL.md` under 500 lines.** Put detail in `references/`, which agents load
      only when needed.
    - **Names must be unique across all plugins.** They are lowercase letters, digits and

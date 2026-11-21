@@ -69,7 +69,35 @@ RESERVED_SKILL_WORDS = ("anthropic", "claude")
 
 # Agent Skills spec top-level frontmatter keys (https://agentskills.io/specification).
 REQUIRED_SKILL_KEYS = frozenset({"name", "description"})
-OPTIONAL_SKILL_KEYS = frozenset({"license", "compatibility", "metadata", "allowed-tools"})
+SPEC_SKILL_KEYS = frozenset({"license", "compatibility", "metadata", "allowed-tools"})
+
+# Keys Claude Code adds (https://code.claude.com/docs/en/skills, checked 2026-11-21),
+# with the YAML types each accepts. Other harnesses ignore them, but claude.ai and the
+# Skills API reject a skill upload that has any of them.
+STR: tuple[type, ...] = (str,)
+STR_OR_LIST: tuple[type, ...] = (str, list)
+CLAUDE_CODE_KEYS: dict[str, tuple[type, ...]] = {
+    "when_to_use": STR,
+    "argument-hint": STR,
+    "arguments": STR_OR_LIST,
+    "disable-model-invocation": (bool,),
+    "user-invocable": (bool,),
+    "disallowed-tools": STR_OR_LIST,
+    "model": STR,
+    "effort": STR,
+    "context": STR,
+    "agent": STR,
+    "background": (bool,),
+    "hooks": (dict,),
+    "paths": STR_OR_LIST,
+    "shell": STR,
+}
+CLAUDE_CODE_CHOICES: dict[str, frozenset[str]] = {
+    "effort": frozenset({"low", "medium", "high", "xhigh", "max"}),
+    "context": frozenset({"fork"}),
+    "shell": frozenset({"bash", "powershell"}),
+}
+OPTIONAL_SKILL_KEYS = SPEC_SKILL_KEYS | frozenset(CLAUDE_CODE_KEYS)
 
 NAME_PATTERN = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
 SEMVER_PATTERN = re.compile(
@@ -215,9 +243,25 @@ def check_skill(path: Path, dir_name: str, report: Report) -> None:
         problem = length_problem("compatibility", front["compatibility"], MAX_COMPATIBILITY_LEN)
         if problem:
             report.add(path, problem)
-    for key in ("license", "allowed-tools"):
-        if key in front and not isinstance(front[key], str):
-            report.add(path, f"{key} must be a string")
+    if "license" in front and not isinstance(front["license"], str):
+        report.add(path, "license must be a string")
+    # The spec says a string; Claude Code also takes a YAML list.
+    if "allowed-tools" in front and not isinstance(front["allowed-tools"], (str, list)):
+        report.add(path, "allowed-tools must be a string or a list")
+    for key, types in CLAUDE_CODE_KEYS.items():
+        if key not in front:
+            continue
+        value = front[key]
+        # bool is a subclass of int, but no key here takes an int, so isinstance is exact.
+        if not isinstance(value, types):
+            wanted = " or ".join(
+                {str: "a string", list: "a list", bool: "true or false", dict: "a mapping"}[t]
+                for t in types
+            )
+            report.add(path, f"{key} must be {wanted}")
+        elif key in CLAUDE_CODE_CHOICES and value not in CLAUDE_CODE_CHOICES[key]:
+            choices = ", ".join(sorted(CLAUDE_CODE_CHOICES[key]))
+            report.add(path, f"{key} must be one of: {choices}")
     if "metadata" in front:
         metadata = front["metadata"]
         if not isinstance(metadata, dict):

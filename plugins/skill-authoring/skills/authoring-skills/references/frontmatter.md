@@ -14,7 +14,31 @@ Only the Agent Skills spec's six keys are allowed; any other top-level key is an
 | `license` | no | A license name, or a bundled file such as `LICENSE.txt`. |
 | `compatibility` | no | 1-500 characters. Only for real environment requirements. |
 | `metadata` | no | A map of **string** keys to **string** values. Quote values such as `"1.0"` or `"true"`. |
-| `allowed-tools` | no | Space-separated tools the agent may use without asking. Experimental. |
+| `allowed-tools` | no | Space-separated tools the agent may use without asking (Claude Code also takes a YAML list). Experimental. |
+
+## Claude Code keys
+
+Claude Code reads these extra top-level keys
+([docs](https://code.claude.com/docs/en/skills)). The validator accepts them and checks
+their types. Other harnesses ignore them, but **claude.ai and the Skills API reject an
+upload that has any of them**, so leave them out of a skill meant for those.
+
+| Key | Type |
+|---|---|
+| `when_to_use` | string, appended to `description` in the skill listing |
+| `argument-hint` | string, such as `"[issue-number]"` |
+| `arguments` | string or list |
+| `disable-model-invocation` | `true` or `false` |
+| `user-invocable` | `true` or `false` |
+| `disallowed-tools` | string or list |
+| `model` | string |
+| `effort` | one of `low`, `medium`, `high`, `xhigh`, `max` |
+| `context` | `fork` |
+| `agent` | string, the subagent type used with `context: fork` |
+| `background` | `true` or `false` |
+| `hooks` | mapping |
+| `paths` | string or list of globs |
+| `shell` | `bash` or `powershell` |
 
 ## Layout
 
