@@ -10,7 +10,7 @@ This guide audits a finished epic and closes it, using
 sub-issues are closed" isn't evidence: an issue can close without a merged PR, a PR can
 merge without one of its tasks, and a task can deliver less than the design required.
 The audit changes no code. It reports gaps and doesn't fix them. It posts its comment on
-the epic and, in the final mode, closes the epic. If you keep a [knowledge catalog](/pg-skills/reference/dependencies/#okf-mcp), it
+the epic and, in the final mode, closes the epic. If you keep a [knowledge catalog](/pg-skills/reference/dependencies/#telekin), it
 also records the outcome there: a dated line in the project's concept and a `log.md`
 entry, plus any follow-up left unfiled in `/projects/things-to-fix.md` if you decided
 not to fix it now. The catalog is optional.

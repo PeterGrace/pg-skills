@@ -120,6 +120,7 @@ plugins:
           - {id: telekin, optional: true, for: "background reading in the author's catalog"}
       - name: github-epic-close-out
         requires:
+          - {id: review-bot, optional: true, for: "the review gate, which checks that every PR was reviewed"}
           - {id: telekin, optional: true, for: "background reading in the author's catalog"}
 
   - name: forgejo-workflows
