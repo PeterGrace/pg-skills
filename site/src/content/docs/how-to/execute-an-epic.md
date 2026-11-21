@@ -2,7 +2,7 @@
 title: Execute an epic with subagents
 description: Run github-epic-to-merged-prs to carry an epic's sub-issues to merged pull requests on a milestone branch, and avoid the failures that happen most often.
 sidebar:
-  order: 2
+  order: 5
 ---
 
 This guide runs an epic's sub-issues to merged PRs with the

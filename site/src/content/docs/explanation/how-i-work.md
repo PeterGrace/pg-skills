@@ -29,15 +29,14 @@ Once there's a spec, I pick by size and shape:
 - **Independent items in the backlog** get burned down one at a time with
   `github-issue-burndown`.
 
-I keep burndown to this paragraph here. It has its own pages later. The skill's
-reference page is [github-issue-burndown](/pg-skills/reference/skills/github-issue-burndown/).
-The same goes for the claims audit that `github-issue-to-pr` runs before it opens a PR
+I explain burndown [in its own section](#how-i-burn-down-a-backlog) below. I only
+mention the claims audit that `github-issue-to-pr` runs before it opens a PR
 ([github-issue-to-pr](/pg-skills/reference/skills/github-issue-to-pr/); the audit needs
 [claims-audit](/pg-skills/reference/dependencies/#claims-audit) and, for ledger
 mode only, [claims-mcp](/pg-skills/reference/dependencies/#claims-mcp)), the study
 guides ([study-guides](/pg-skills/reference/plugins/study-guides/)) and the
 supporting setup (the [knowledge catalog](/pg-skills/reference/dependencies/#telekin), the model policy and the
-machine rules).
+machine rules) on this page.
 
 ## What I read and what I approve
 
@@ -75,6 +74,39 @@ I curate when the project is new or risky, or when the design is still moving. T
 skills don't describe this as a mode. It's a choice I make, and you can make it
 too. The
 [tutorial](/pg-skills/tutorials/first-issue-to-merged-pr/) is one pass of it.
+
+## How I burn down a backlog
+
+A burndown is for independent items in the backlog.
+[`github-issue-burndown`](/pg-skills/reference/skills/github-issue-burndown/) takes the
+open issues labelled `accepted`, highest priority first, and carries each one to a
+merged PR. I run it during unattended stretches, and when the backlog piles up. The
+[how-to guide](/pg-skills/how-to/burn-down-the-backlog/) has the steps.
+
+**Why `accepted` is my gate.** In my words: "Sometimes I make an issue, sometimes an
+agent makes an issue, either way I read, groom if needed, then apply the label." The
+issue might come from me, from an implementer or from a review bot's follow-up. Nothing
+enters the queue until I have read it. If the burndown could label its own follow-ups,
+it would feed itself, so the skill files them without `accepted` and I decide which
+ones to take. I [groom](/pg-skills/how-to/groom-an-issue/) an issue only when it is too
+vague for an agent to implement unattended.
+
+**How it works serially.** The skill's rule is one issue at a time, start to merge, and
+it carries a note that it is mine. Each PR targets the default branch, with no
+milestone branch, and the next worktree is cut from the default branch after the last
+merge. The coordinator also asks for the next issue again after every merge, so an issue
+I label `P0` while it runs goes next.
+
+**What I do with blocked issues.** The skill stops at a `burndown-blocked` label and a
+comment. After that I do this: "I usually ask claude in a separate session to work
+interactively with me on the issue so we can get it either fixed for resume, or pushed
+manually." The how-to guide has that step under
+[taking a blocked issue to an interactive session](/pg-skills/how-to/burn-down-the-backlog/#take-a-blocked-issue-to-an-interactive-session).
+
+For the planning side that feeds a backlog, see
+[plan a feature](/pg-skills/how-to/plan-a-feature/),
+[split an issue](/pg-skills/how-to/split-an-issue/) and
+[plan a milestone](/pg-skills/how-to/plan-a-milestone/).
 
 ## How the work gets reviewed and finished
 

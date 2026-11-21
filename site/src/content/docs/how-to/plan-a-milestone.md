@@ -2,7 +2,7 @@
 title: Plan a milestone into an epic and sub-issues
 description: Turn the next milestone of a design document into a reviewed plan, an epic and one sub-issue per task with github-milestone-plan-to-issues.
 sidebar:
-  order: 1
+  order: 2
 ---
 
 This guide takes a milestone from your design document to a merged plan PR, an epic
