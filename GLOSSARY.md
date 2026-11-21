@@ -46,11 +46,11 @@ repeated failed review rounds. I set this to keep within my usage limits.
 ### The knowledge catalog (Telekin, OKF)
 
 My private catalog of notes about my systems, projects and processes, in Open
-Knowledge Format and served over MCP by Telekin
-([okf_mcp](https://github.com/hypotheosis/okf_mcp)). Skills point to concepts in it,
+Knowledge Format and served over MCP by Telekin. Skills point to concepts in it,
 such as `/processes/subagent-pr-workflow.md`, as background reading. You can't read
-it. The server itself is listed on the [dependencies page](https://petergrace.github.io/pg-skills/reference/dependencies/#okf-mcp), with the
-skills that use it. **Adapt:** skip those pointers, or point them at your own docs.
+it. Telekin, and the open-source server you can self-host, are on the
+[dependencies page](https://petergrace.github.io/pg-skills/reference/dependencies/#telekin),
+with the skills that use it. **Adapt:** skip those pointers, or point them at your own docs.
 
 ### claims-mcp and `claims-audit`
 

@@ -35,7 +35,7 @@ The same goes for the claims audit that `github-issue-to-pr` runs before it open
 ([github-issue-to-pr](/pg-skills/reference/skills/github-issue-to-pr/); the audit needs
 [claims-audit and claims-mcp](/pg-skills/reference/dependencies/#claims-audit)), the study
 guides ([study-guides](/pg-skills/reference/plugins/study-guides/)) and the
-supporting setup (the knowledge catalog, the model policy and the
+supporting setup (the [knowledge catalog](/pg-skills/reference/dependencies/#telekin), the model policy and the
 machine rules).
 
 ## What I read and what I approve

@@ -60,12 +60,12 @@ dependencies:
     description: "An MCP server for Forgejo. The forgejo-workflows skills read and file issues and pull requests through it."
     url: https://github.com/raohwork/forgejo-mcp
     install: "Use its Docker image, `go install github.com/raohwork/forgejo-mcp@latest`, or a release binary, then configure it for your Forgejo host."
-  - id: okf-mcp
-    name: Telekin (okf_mcp) knowledge catalog
+  - id: telekin
+    name: Telekin (knowledge catalog)
     kind: mcp-server
-    description: "An MCP server for catalogs of Open Knowledge Format notes. Some skills point to concepts in the author's own, private catalog as background reading."
-    url: https://github.com/hypotheosis/okf_mcp
-    note: "The catalog these skills point to is private, so you can't read it. Skip those pointers or use your own notes."
+    description: "A long-term memory that AI assistants share, kept as catalogs of notes and served over MCP. The coordinator and close-out skills read and write one if you have it; its site lists early access. The open-source server it is built on, [hypotheosis/okf_mcp](https://github.com/hypotheosis/okf_mcp), can be self-hosted."
+    url: https://telekin.ai
+    note: "The catalog these skills point to is the author's own and private, so you can't read it. Skip those pointers or use your own notes."
   - id: review-bot
     name: A pull-request review bot or a human reviewer
     kind: service
@@ -98,7 +98,7 @@ plugins:
       - name: github-milestone-plan-to-issues
         requires:
           - {id: superpowers, for: "writing the milestone plan with `superpowers:writing-plans`"}
-          - {id: okf-mcp, optional: true, for: "background reading in the author's catalog"}
+          - {id: telekin, optional: true, for: "background reading in the author's catalog"}
       - github-groom-issue
       - github-issue-to-subissues
       - name: github-issue-to-pr
@@ -113,14 +113,14 @@ plugins:
       - name: github-epic-to-merged-prs
         requires:
           - {id: review-bot, for: "reviewing every sub-issue PR, driven by the author's Brooke bot"}
-          - {id: okf-mcp, optional: true, for: "background reading in the author's catalog"}
+          - {id: telekin, optional: true, for: "background reading in the author's catalog"}
       - name: github-issue-burndown
         requires:
           - {id: review-bot, for: "reviewing every PR; its scripts read the author's Brooke bot"}
-          - {id: okf-mcp, optional: true, for: "background reading in the author's catalog"}
+          - {id: telekin, optional: true, for: "background reading in the author's catalog"}
       - name: github-epic-close-out
         requires:
-          - {id: okf-mcp, optional: true, for: "background reading in the author's catalog"}
+          - {id: telekin, optional: true, for: "background reading in the author's catalog"}
 
   - name: forgejo-workflows
     description: "Issue-to-PR workflows on Forgejo through the forgejo-mcp server: planning features into issues, grooming and splitting issues, implementing an issue as a pull request, and walking through review comments. Its subagent fan-out uses the issue-implementer agent from github-workflows."
