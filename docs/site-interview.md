@@ -174,6 +174,44 @@ Otherwise the burndown would feed itself.
 
 ## 4. Validating with claims-mcp
 
+### What does the claims audit catch that the gates miss?
+
+**Answer:**
+- **The change didn't do what was asked:** the code passes, but part of the issue or
+  plan was quietly dropped.
+- **The PR body overclaims:** the description says things the diff doesn't support.
+- **Self-grading bias:** the implementer can't fairly grade its own work, so a fresh
+  subagent on a different model checks it independently.
+
+**Notes:** "regressions recorded in the ledger" wasn't chosen as a main reason.
+
+### Which projects get a committed ledger (`claims.json`)?
+
+**Answer:** "Generally long-lived, spec-driven, or correctness-matters projects.
+Sometimes I delay the committed ledger until a later date, which spawns a raft of
+issues. It's better to start the ledger very early if you think you're going to need
+it."
+
+**Notes:** advice for copiers: start the ledger at the beginning of any project that
+may need one. Adding it later means backfilling claims for everything already built,
+and that turns up a batch of issues at once. Other projects stay in table-only mode.
+
+### Where else do I use `claims-audit`?
+
+**Answer:**
+- **Generated docs:** study guides, and this site's pages in phase 4.
+- **Agent outputs:** checking that a long agent task did everything its brief asked.
+
+**Notes:** milestone audits weren't chosen. `github-epic-close-out` covers those.
+
+### What do I do with the audit's results?
+
+**Answer:** I leave it to Brooke.
+
+**Notes:** the audit's table goes in the PR body. Brooke's review checks the body's
+claims against the diff, and Peter rarely reads the table himself. So the audit and
+Brooke make two independent checks on the description before Peter looks at it.
+
 ## 5. Study guides
 
 ## 6. The supporting setup
