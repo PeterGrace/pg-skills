@@ -11,7 +11,9 @@ skill. You are the coordinator's user: the skill coordinates, and an
 [issue-implementer](/pg-skills/reference/agents/issue-implementer/) subagent
 implements each issue. You need an epic whose sub-issues exist and are linked by
 blocked-by edges, and a [review bot or a human reviewer](/pg-skills/reference/dependencies/#review-bot)
-for the PRs. If you don't have an epic,
+for the PRs. Each implementer runs `github-issue-to-pr`, which needs the
+[`claims-audit`](/pg-skills/reference/dependencies/#claims-audit) skill for its audit
+step, and [`just`](/pg-skills/reference/dependencies/#just) for its gates. If you don't have an epic,
 [plan a milestone](/pg-skills/how-to/plan-a-milestone/) first.
 
 For the reasoning, read
