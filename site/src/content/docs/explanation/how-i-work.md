@@ -36,7 +36,8 @@ opens a PR ([why I audit](/pg-skills/explanation/why-audit-claims/), [how to run
 it](/pg-skills/how-to/validate-a-change/); it needs
 [claims-audit](/pg-skills/reference/dependencies/#claims-audit) and, for ledger mode
 only, [claims-mcp](/pg-skills/reference/dependencies/#claims-mcp)), the
-[study guides](/pg-skills/reference/plugins/study-guides/) and the supporting setup (the
+[study guides](/pg-skills/reference/plugins/study-guides/) ([why I fact-check them](/pg-skills/explanation/why-fact-check-generated-docs/),
+[how to](/pg-skills/how-to/fact-check-a-study-guide/), [tutorial](/pg-skills/tutorials/first-study-guide/)) and the supporting setup (the
 [knowledge catalog](/pg-skills/reference/dependencies/#telekin), model policy and
 machine rules).
 
