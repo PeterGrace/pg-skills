@@ -75,8 +75,10 @@ The commit should print as `096c8d4`. The listing should show `__init__.py`, `_j
 
 ## 3. Write the guide
 
-Open Claude Code in the `itsdangerous-study` directory. Use any model you like for this
-pass, and note which one you chose. Then say:
+Open Claude Code in the `itsdangerous-study` directory. Any model works for this pass, as
+long as the fact-check in step 4 uses a different one. This tutorial follows Peter's usual
+pairing: write with Opus and check with Sonnet. Switch with `/model` if you need to. Then
+say:
 
 ```text
 Write a study guide for this codebase.
@@ -126,10 +128,13 @@ there's an audit trail.
 
 ## 4. Fact-check the guide on a different model
 
-Start a new Claude Code session in the same directory, on a different model from step 3.
-You can switch with `/model`. The skills don't name a model for either pass. What they ask
-for is that the two differ, because a model checking its own output shares its own blind
-spots. Then say:
+Open a new Claude Code window in the same directory, so the check starts with a fresh
+context. Run `/model` there and pick a different model from step 3: Sonnet, if you wrote
+with Opus. Don't switch models in the session that wrote the guide, because the writing
+conversation would still be in context.
+
+The skills don't name a model for either pass. What they ask for is that the two differ,
+because a model checking its own output shares its own blind spots. Then say:
 
 ```text
 Fact-check the study guide in docs/study-guide/.
@@ -201,8 +206,8 @@ resolved and how it was left in the guide.
 
 ## 6. Decide whether to check again
 
-If the report recommends a re-check, you can do it now: a new session on the different
-model, and the same fact-check request as step 4. It writes new review files and a new
+If the report recommends a re-check, you can do it now. Use a new window on the checking
+model, as in step 4, with the same fact-check request. It writes new review files and a new
 summary. The skills don't say whether a re-run leaves `RECONCILIATION.md` in place, so
 copy it somewhere outside the `fact-check/` folder first if you want to keep it.
 

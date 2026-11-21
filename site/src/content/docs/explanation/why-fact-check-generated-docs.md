@@ -81,6 +81,11 @@ The skill doesn't name a model for the writer or the checker. What it asks for i
 they differ. The reconcile skill assumes the same thing: it describes the fact-check as
 run "(ideally) on a different model".
 
+In practice I write with Opus and check with Sonnet. I run the check in a new Claude Code
+window and switch it to Sonnet with `/model`. The new window matters as much as the
+model: a check run in the writer's own session would still have the writing conversation
+in context.
+
 This is a different reason from the one in my PR audits. There, my `issue-implementer`
 agent runs the auditor on Sonnet, the same model as the implementer, to save tokens, and
 the independence comes from a fresh context

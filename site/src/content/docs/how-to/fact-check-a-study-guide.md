@@ -22,12 +22,15 @@ one and runs the whole loop.
   [`codebase-study-guide`](/pg-skills/reference/skills/codebase-study-guide/) writes it.
   That is the folder both skills read by default.
 - You can run the fact-check on a model other than the one that wrote the guide. The
-  skill says the value "comes almost entirely" from that. It doesn't name a model.
+  skill says the value "comes almost entirely" from that. It doesn't name a model. Peter
+  writes with Opus and checks with Sonnet.
 
 ## Fact-check the guide
 
-1. Start a Claude Code session in the repository, on a different model from the one that
-   wrote the guide. In Claude Code you can change the model with `/model`.
+1. Open a new Claude Code window in the repository, so the check starts with a fresh
+   context. Run `/model` there to pick a different model from the one that wrote the
+   guide. Don't switch models in the writer's session, because its conversation would
+   still be in context.
 2. Ask for the check, for example: "Fact-check the study guide in `docs/study-guide/`."
 3. Let it orient itself. It reads the index, then compares the commit named in each
    doc's header with the current checkout. If they differ, it says so at the top of the
@@ -99,7 +102,8 @@ annotation's format, so write it where a reader of the finding will see it.
    `SUMMARY.md` to confirm that none was dropped.
 5. Take the recommendation. If the edits were substantial, the skill recommends running
    the fact-check again on the revised guide, since a correction can add a new error.
-   It doesn't do that itself. Repeat the fact-check steps above on the different model.
+   It doesn't do that itself. Repeat the fact-check steps above, in a new window on the
+   checking model.
 
 ## What to do with deferred findings
 
