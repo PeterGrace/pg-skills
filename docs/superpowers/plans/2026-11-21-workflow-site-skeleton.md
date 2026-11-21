@@ -253,11 +253,13 @@ Expected: FAIL with `AttributeError: module 'skills_tool' has no attribute 'refe
 
 - [ ] **Step 3: Implement the helpers and skill pages**
 
-In `tools/skills.py`, add `import html` and `import shutil` to the imports (keeping them alphabetical). Add this constant next to `SKILL_FILE`:
+In `tools/skills.py`, add `import html` to the imports (keeping it alphabetical). Add this constant next to `SKILL_FILE`:
 
 ```python
 AGENTS_DIR = "agents"
 ```
+
+> **Corrected (issue #5, 2026-11-21).** Task 2 no longer adds `import shutil`: nothing uses it until `write_reference` in Task 4, so Task 4's Step 3 adds it.
 
 Then add this block after the `write_files` function:
 
@@ -643,7 +645,7 @@ Expected: FAIL with `AttributeError: ... no attribute 'write_reference'` and, fo
 
 - [ ] **Step 3: Implement**
 
-Add after `reference_pages` in `tools/skills.py`:
+Add `import shutil` to the imports (after `import re`), then add after `reference_pages` in `tools/skills.py`:
 
 ```python
 def write_reference(out: Path, pages: dict[str, str]) -> None:
