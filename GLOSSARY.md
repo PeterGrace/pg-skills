@@ -58,8 +58,9 @@ My MCP server and skill for auditing a change's claims: a ledger (`claims.json`)
 of claims, evidence and supported/refuted verdicts. The `*-issue-to-pr` skills run
 `claims-audit` on a fresh subagent before opening a PR. Where to get them, and which
 skills need them, is on the dependencies page for
-[claims-mcp](https://petergrace.github.io/pg-skills/reference/dependencies/#claims-mcp) and [claims-audit](https://petergrace.github.io/pg-skills/reference/dependencies/#claims-audit). **Adapt:** install
-claims-mcp, or drop that step and review the PR against the issue yourself.
+[claims-mcp](https://petergrace.github.io/pg-skills/reference/dependencies/#claims-mcp) and [claims-audit](https://petergrace.github.io/pg-skills/reference/dependencies/#claims-audit). Only `claims-audit` is required;
+claims-mcp is needed only for ledger mode. **Adapt:** install
+`claims-audit` (and claims-mcp if you want a ledger), or drop that step and review the PR against the issue yourself.
 
 ### superpowers
 
