@@ -57,9 +57,10 @@ Three things in the skills are specific to Brooke.
    - In `merge-if-ready.sh`, replace the `brooke-reviews` login in the GraphQL result
      filter, which finds review threads that have no reply. This script has no `bot=`
      line. It calls `brooke-ok.sh`, so it follows that script's changes.
-   - Change what counts as "OK". `brooke-ok.sh` reads the review body for a
-     `Quality score:` line and for text such as "requests changes", and counts inline
-     comments on the head. It doesn't read the review's state. A reviewer with a
+   - Change what counts as "OK". `brooke-ok.sh` passes a review with no inline
+     comments on the head whose body doesn't ask for changes (it matches phrases such as
+     "requests changes"). It prints the `Quality score:` but doesn't use it, and it
+     doesn't read the review's state. A reviewer with a
      different format needs a different check.
    - Change the security trigger, or do it by hand. `brooke-security.sh` looks for a
      score under 80 and a `**Blocking:**` item in a `### Security` section. If your
@@ -67,7 +68,8 @@ Three things in the skills are specific to Brooke.
      three in [the model policy](/pg-skills/explanation/model-policy/).
    - Change the wording in the skill text as well. `forgejo-address-pr-review` names
      `brooke-reviews[bot]` in a rule that her comments must not be filtered out of the
-     walk, and the burndown skill's description names her.
+     walk. `github-epic-to-merged-prs` names her login, `/prrb` and `brooke-security.sh` as
+     examples. The burndown skill is written around her throughout.
 
 The skills assume a reviewer that posts PR reviews. A human reviewer works if the
 watchers match that person's login. Beyond the list above, I don't prescribe more.
@@ -107,8 +109,8 @@ They pass `model: "opus"` only to escalate a PR.
 
 The auditor has an override. `github-issue-to-pr` asks for the claims auditor to run
 on a different model from yours. The agent file overrides that: the auditor runs on
-Sonnet, the same model as the implementer, and never on Opus. I did that to save
-tokens. If you change the agent's model, change that bullet too, since its reason
+Sonnet, and never on Opus. For a Sonnet implementer that is its own model. I did that
+to save tokens. If you change the agent's model, change that bullet too, since its reason
 ("the same model as you") would no longer hold. The auditor is a fresh subagent either
 way.
 

@@ -54,7 +54,7 @@ one and runs the whole loop.
 
 6. Read `SUMMARY.md`. It has the provenance check, totals by severity and by verdict, the
    Critical findings to fix first, the items for a subject-matter expert, and the limits
-   of the pass. Then read the per-doc `*.review.md` files next to the docs they review.
+   of the pass. Then read each `*.review.md` side by side with the doc it reviews.
 
 ### What a finding says
 
@@ -123,7 +123,7 @@ You have two choices, and which one is right depends on the situation.
   and cites the person instead of the code.
 
 [Why I fact-check generated docs](/pg-skills/explanation/why-fact-check-generated-docs/#how-i-finish-a-guide-that-has-open-findings)
-says how I choose between them.
+says how the author chooses between them.
 
 ## Related
 

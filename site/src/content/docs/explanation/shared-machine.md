@@ -13,7 +13,7 @@ agent's standing rules and in the coordinator skills.
 
 ## The worktree per agent comes first
 
-I was asked which rule matters most to someone copying this setup. My answer, in full:
+If you copy one rule first, make it the worktree per agent. In my words:
 "Worktree per agent is table stakes but the rest of these are also incredibly
 important, they're equally important but the worktree per agent is first among equals
 for sure."
@@ -21,8 +21,8 @@ for sure."
 So read the rest of this page as equally important.
 
 Each sub-issue gets its own agent, its own git worktree and its own PR. The coordinator
-skills create the worktree with `git worktree add` from the base branch, and say:
-"Never reuse another agent's worktree." The implementer agent works only in the
+skills create the worktree with `git worktree add` from the base branch, and the epic skill
+says: "Never reuse another agent's worktree." The implementer agent works only in the
 worktree its brief names, on the branch it names, and never `cd`s into the main
 checkout or another worktree. Its logs go inside that worktree, for example under
 `target/i<issue>-logs/`, because agents that shared a log directory reported each
@@ -103,13 +103,7 @@ These rules protect other sessions' work:
 - The worktree cleanup note for a single issue:
   [`github-issue-to-pr`](/pg-skills/reference/skills/github-issue-to-pr/).
 
-Those skills need [git](/pg-skills/reference/dependencies/#git) and
-[gh](/pg-skills/reference/dependencies/#gh). `github-issue-to-pr` also needs
-[just](/pg-skills/reference/dependencies/#just) and
-[claims-audit](/pg-skills/reference/dependencies/#claims-audit), and can use
-[claims-mcp](/pg-skills/reference/dependencies/#claims-mcp). The coordinators need a
-[review bot](/pg-skills/reference/dependencies/#review-bot), and `github-issue-burndown`
-also needs [jq](/pg-skills/reference/dependencies/#jq). The glossary's entries on
+What each skill needs is on the [dependencies page](/pg-skills/reference/dependencies/). The glossary's entries on
 [okf_mcp and autobots](/pg-skills/reference/glossary/#okf_mcp-and-autobots) say what to
 do with my repositories' quirks that appear in the text.
 For how to adapt these rules to your machine, see

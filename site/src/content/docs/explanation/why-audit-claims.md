@@ -23,8 +23,9 @@ as a file list that is wrong. Brooke has caught that kind of thing in reviews to
 
 **Self-grading bias.** The implementer can't fairly grade its own work. So the audit is done by a fresh subagent that gets none of the implementer's reasoning.
 The skill asks for a different model. My `issue-implementer` agent overrides that and
-runs the auditor on Sonnet, its own model, to save tokens, so in my runs the
-independence comes from a fresh context, not a different model.
+runs the auditor on Sonnet, usually its own model, to save tokens, so in my runs the
+independence usually comes from a fresh context, not a different model. Only an Opus
+takeover gets an auditor on another model.
 
 The skill adds a fourth thing: when the project has a ledger, the audit also checks that
 the change didn't break anything the ledger records as working. That isn't my main
