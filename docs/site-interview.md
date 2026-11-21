@@ -67,6 +67,13 @@ projects at once.
 **Notes:** this confirms why the skills have rules for worktrees, caches, gate locks
 and killing processes by PID only.
 
+### How often do I use these skills?
+
+**Answer:** "Every day."
+
+**Notes:** Peter confirmed this on 2026-11-21, when an audit flagged the home page's
+"every day" claim (issue #39, N3). It is the source for that sentence.
+
 ## 2. Idea to merged PRs
 
 ### How closely do I read the spec and the plan?
