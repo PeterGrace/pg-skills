@@ -669,17 +669,146 @@ def skill_page(
     return page(skill, description, "\n".join(body), order)
 
 
+def demote_headings(markdown: str) -> str:
+    """Moves every Markdown heading down one level, leaving fenced code alone.
+
+    A fence closes only on a line of the opener's character, at least as long as the
+    opener, with nothing after it, so other fence-like lines inside it stay code.
+    """
+    lines: list[str] = []
+    opener: tuple[str, int] | None = None
+    for line in markdown.splitlines():
+        fence = re.match(r" {0,3}(`{3,}|~{3,})(.*)$", line)
+        if opener is None:
+            if fence and not (fence.group(1)[0] == "`" and "`" in fence.group(2)):
+                opener = (fence.group(1)[0], len(fence.group(1)))
+            elif re.match(r"#{1,5} ", line):
+                line = "#" + line
+        elif (
+            fence
+            and fence.group(1)[0] == opener[0]
+            and len(fence.group(1)) >= opener[1]
+            and not fence.group(2).strip()
+        ):
+            opener = None
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def install_rows(plugin: Plugin, catalog: Catalog, ctx: SiteContext) -> list[str]:
+    """Returns a Markdown table of install commands for each client."""
+    target = f"{plugin.name}@{catalog.name}"
+    clone_dir = ctx.repo.split("/")[-1]
+    return [
+        "| Client | How |",
+        "|---|---|",
+        f"| Claude Code | `/plugin marketplace add {ctx.repo}`, then `/plugin install {target}` |",
+        f"| GitHub Copilot CLI | `copilot plugin marketplace add {ctx.repo}`, then "
+        f"`copilot plugin install {target}` |",
+        f"| OpenAI Codex | `codex plugin marketplace add {ctx.repo}`, then install "
+        f"`{plugin.name}` from `/plugins` |",
+        f"| Gemini CLI | `git clone {ctx.repo_url}.git`, then "
+        f"`gemini extensions install ./{clone_dir}/plugins/{plugin.name}` |",
+    ]
+
+
+def plugin_page(
+    plugin: Plugin, catalog: Catalog, agents: list[str], ctx: SiteContext, order: int
+) -> str:
+    """Returns the reference page for one plugin."""
+    facts = f"**Version** {plugin.version} · **Category** {plugin.category}"
+    if plugin.keywords:
+        facts += f" · **Keywords** {', '.join(plugin.keywords)}"
+    body = [
+        md_text(plugin.description),
+        "",
+        facts,
+        "",
+        "## Install",
+        "",
+        *install_rows(plugin, catalog, ctx),
+        "",
+        "## Skills",
+        "",
+        *[f"- [{skill}]({ctx.link('skills', skill)})" for skill in plugin.skills],
+    ]
+    if agents:
+        body += [
+            "",
+            "## Agents",
+            "",
+            *[f"- [{plugin.name}:{agent}]({ctx.link('agents', agent)})" for agent in agents],
+        ]
+    return page(plugin.name, plugin.description, "\n".join(body), order)
+
+
+def agent_page(plugin: Plugin, path: Path, ctx: SiteContext, order: int) -> tuple[str, str]:
+    """Returns an agent's name and its reference page."""
+    front, rules = read_frontmatter(path)
+    name = str(front.get("name", path.stem))
+    description = str(front.get("description", ""))
+    source = f"{PLUGINS_DIR}/{plugin.name}/{AGENTS_DIR}/{path.name}"
+    body = [
+        f"> {md_text(description)}",
+        "",
+        "| Field | Value |",
+        "|---|---|",
+        f"| Subagent type | `{plugin.name}:{name}` |",
+        f"| Plugin | [{plugin.name}]({ctx.link('plugins', plugin.name)}) |",
+    ]
+    if "model" in front:
+        body.append(f"| Model | `{front['model']}` |")
+    body += [
+        f"| Source | [`{source}`]({ctx.repo_url}/blob/main/{source}) |",
+        "",
+        "## Standing rules",
+        "",
+        demote_headings(rules.strip()),
+    ]
+    return name, page(name, description, "\n".join(body), order)
+
+
+def glossary_page(root: Path) -> str | None:
+    """Returns GLOSSARY.md as a page, without its own title heading, if it exists."""
+    path = root / "GLOSSARY.md"
+    if not path.is_file():
+        return None
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if lines and lines[0].startswith("# "):
+        lines = lines[1:]
+    return page(
+        "Glossary",
+        "The personal names and conventions these skills use, and how to adapt them.",
+        "\n".join(lines),
+    )
+
+
 def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str, str]:
     """Returns every reference page, keyed by path relative to the output directory."""
     pages: dict[str, str] = {}
     skill_order = 0
-    for plugin in catalog.plugins:
+    agent_order = 0
+    for index, plugin in enumerate(catalog.plugins, start=1):
+        agents_dir = root / PLUGINS_DIR / plugin.name / AGENTS_DIR
+        agent_names: list[str] = []
+        for path in sorted(agents_dir.glob("*.md")) if agents_dir.is_dir() else []:
+            agent_order += 1
+            name, text = agent_page(plugin, path, ctx, agent_order)
+            key = f"agents/{name}.md"
+            if key in pages:
+                raise ValueError(f"agent {name!r} is defined in more than one plugin")
+            pages[key] = text
+            agent_names.append(name)
+        pages[f"plugins/{plugin.name}.md"] = plugin_page(plugin, catalog, agent_names, ctx, index)
         for skill in plugin.skills:
             skill_order += 1
             front, _ = read_frontmatter(
                 root / PLUGINS_DIR / plugin.name / SKILLS_DIR / skill / SKILL_FILE
             )
             pages[f"skills/{skill}.md"] = skill_page(plugin, skill, front, ctx, skill_order)
+    glossary = glossary_page(root)
+    if glossary is not None:
+        pages["glossary.md"] = glossary
     return dict(sorted(pages.items()))
 
 

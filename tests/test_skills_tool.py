@@ -285,9 +285,15 @@ class ReferenceTest(RepoTestCase):
         )
         return pages
 
-    def test_writes_one_page_per_skill(self) -> None:
+    def test_writes_one_page_per_plugin_and_skill(self) -> None:
         self.assertEqual(
-            sorted(self.pages()), ["skills/commit-messages.md", "skills/semver-bump.md"]
+            sorted(self.pages()),
+            [
+                "plugins/release-tools.md",
+                "plugins/writing.md",
+                "skills/commit-messages.md",
+                "skills/semver-bump.md",
+            ],
         )
 
     def test_skill_page_links_plugin_and_source(self) -> None:
@@ -321,6 +327,57 @@ class ReferenceTest(RepoTestCase):
         text = self.pages()["skills/semver-bump.md"]
         self.assertIn("## Claude Code settings\n\n- `disable-model-invocation`: `true`", text)
         self.assertNotIn("## Claude Code settings", self.pages()["skills/commit-messages.md"])
+
+    def test_plugin_page_lists_install_and_skills(self) -> None:
+        text = self.pages()["plugins/release-tools.md"]
+        self.assertIn("Release helpers.", text)
+        self.assertIn("**Version** 1.2.0 · **Category** Developer Tools · **Keywords** release", text)
+        self.assertIn("`/plugin install release-tools@example-skills`", text)
+        self.assertIn("`copilot plugin marketplace add example/skills`", text)
+        self.assertIn("`gemini extensions install ./skills/plugins/release-tools`", text)
+        self.assertIn("- [semver-bump](/docs/reference/skills/semver-bump/)", text)
+        self.assertNotIn("## Agents", text)
+        self.assertIn("sidebar:\n  order: 1\n", text)
+
+    def test_agent_page(self) -> None:
+        self.write(
+            "plugins/release-tools/agents/helper.md",
+            '---\nname: helper\ndescription: "Helps."\nmodel: sonnet\n---\n\n'
+            "## Rules\n\n- Be kind.\n\n```sh\n# not a heading\n```\n",
+        )
+        pages = self.pages()
+        text = pages["agents/helper.md"]
+        self.assertIn("> Helps.", text)
+        self.assertIn("| Subagent type | `release-tools:helper` |", text)
+        self.assertIn("| Model | `sonnet` |", text)
+        self.assertIn("## Standing rules\n\n### Rules", text)
+        self.assertIn("\n# not a heading\n", text)
+        self.assertIn(
+            "## Agents\n\n- [release-tools:helper](/docs/reference/agents/helper/)",
+            pages["plugins/release-tools.md"],
+        )
+
+    def test_demote_headings_tracks_fence_marker_and_length(self) -> None:
+        text = "````md\n```\n# literal\n```\n````\n## After\n~~~\n# tilde\n```\n# still tilde\n~~~\n# Out"
+        self.assertEqual(
+            skills.demote_headings(text),
+            "````md\n```\n# literal\n```\n````\n### After\n~~~\n# tilde\n```\n# still tilde\n~~~\n## Out",
+        )
+
+    def test_duplicate_agent_names_are_an_error(self) -> None:
+        agent = '---\nname: helper\ndescription: "Helps."\n---\n'
+        self.write("plugins/release-tools/agents/helper.md", agent)
+        self.write("plugins/writing/agents/helper.md", agent)
+        report = skills.validate(self.root)
+        with self.assertRaisesRegex(ValueError, "more than one plugin"):
+            skills.reference_pages(self.root, report.catalog, skills.SiteContext(*SITE))
+
+    def test_glossary_drops_its_heading(self) -> None:
+        self.write("GLOSSARY.md", "# Glossary\n\nIntro.\n\n### Brooke\n\nA bot.\n")
+        text = self.pages()["glossary.md"]
+        self.assertTrue(text.startswith('---\ntitle: "Glossary"\n'))
+        self.assertNotIn("# Glossary\n", text.split("---", 2)[2])
+        self.assertIn("Intro.\n\n### Brooke\n\nA bot.", text)
 
 
 if __name__ == "__main__":
