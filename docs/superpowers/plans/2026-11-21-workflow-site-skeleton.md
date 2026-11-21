@@ -138,10 +138,10 @@ and checking the live site are not tasks: see **Shipping the milestone (coordina
 
 - [ ] **Step 1: Convert the entries**
 
-Run this from the repo root (the script is written to a scratch file, not the repo):
+Run this from the repo root (the script is written to an untracked scratch file, not committed):
 
 ```bash
-cat > /tmp/glossary_fix.py <<'EOF'
+mkdir -p target && cat > target/glossary_fix.py <<'EOF'
 import re, sys
 path = sys.argv[1]
 out = []
@@ -158,7 +158,7 @@ for line in open(path, encoding="utf-8").read().split("\n"):
         out.append(line)
 open(path, "w", encoding="utf-8").write("\n".join(out))
 EOF
-python3 -I /tmp/glossary_fix.py GLOSSARY.md
+python3 -I target/glossary_fix.py GLOSSARY.md
 ```
 
 - [ ] **Step 2: Check the result**
@@ -166,7 +166,7 @@ python3 -I /tmp/glossary_fix.py GLOSSARY.md
 Run: `grep -c '^### ' GLOSSARY.md; grep -c '^: ' GLOSSARY.md; sed -n '1,25p' GLOSSARY.md`
 Expected: `13` headings, `0` definition lines
 
-> **Corrected (issue #4).** The plan said 14 headings; `GLOSSARY.md` has 13 entries (the issue repeated the 14). The script also writes its helper to an untracked scratch path (for example `target/<n>/glossary_fix.py`) rather than `/tmp`, and `GLOSSARY.md` keeps its trailing newline.
+> **Corrected (issue #4), 2026-11-21.** The plan said 14 headings; `GLOSSARY.md` has 13 entries (the issue repeated the 14). The script now writes its helper to `target/glossary_fix.py` (untracked; do not commit it) instead of `/tmp`.
 
 The first entry should look like:
 
