@@ -39,7 +39,12 @@ only, [claims-mcp](/pg-skills/reference/dependencies/#claims-mcp)), the
 [study guides](/pg-skills/reference/plugins/study-guides/) ([why I fact-check them](/pg-skills/explanation/why-fact-check-generated-docs/),
 [how to](/pg-skills/how-to/fact-check-a-study-guide/), [tutorial](/pg-skills/tutorials/first-study-guide/)) and the supporting setup (the
 [knowledge catalog](/pg-skills/reference/dependencies/#telekin), model policy and
-machine rules).
+machine rules). Those have their own pages:
+[the knowledge catalog](/pg-skills/explanation/knowledge-catalog/),
+[the model policy](/pg-skills/explanation/model-policy/) and
+[working on a shared machine](/pg-skills/explanation/shared-machine/). To change
+any of them for your own setup, see
+[Adapt the skills to your setup](/pg-skills/how-to/adapt-the-skills/).
 
 ## What I read and what I approve
 
