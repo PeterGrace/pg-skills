@@ -312,6 +312,76 @@ class DependencyValidateTest(DependenciesTestCase):
         )
         self.assert_error("requires 'gh' more than once")
 
+    def test_non_string_requires_ids_are_errors(self) -> None:
+        plugin_item = '      - {id: gh, for: "talking to GitHub"}\n'
+        skill_item = '          - {id: packs, for: "planning <releases>"}\n'
+        for bad in ("null", "7", "[gh]", "{gh: 1}"):
+            for old in (plugin_item, skill_item):
+                with self.subTest(bad=bad, where=old.strip()):
+                    indent = old[: len(old) - len(old.lstrip())]
+                    self.edit(old, old + f'{indent}- {{id: {bad}, for: "x"}}\n')
+                    self.assert_error("id must be a string")
+
+    def test_non_string_kind_is_an_error_not_a_crash(self) -> None:
+        for bad in ("[cli]", "{name: cli}", "7", "null"):
+            with self.subTest(kind=bad):
+                self.edit("kind: cli", f"kind: {bad}")
+                self.assert_error("kind must be one of")
+
+    def test_non_string_kind_with_no_url_does_not_crash(self) -> None:
+        self.set_catalog(
+            DEPS_CATALOG.replace("kind: cli", "kind: [cli]", 1).replace(
+                "    url: https://cli.github.com/\n", "", 1
+            )
+        )
+        self.assert_error("kind must be one of")
+
+    def test_wrongly_typed_dependency_fields_are_errors_not_crashes(self) -> None:
+        cases = [
+            ("    name: GitHub CLI\n", "    name: [x]\n", "name must be"),
+            ("    name: GitHub CLI\n", "    name: {a: 1}\n", "name must be"),
+            ("    url: https://cli.github.com/\n", "    url: [x]\n", "url must start"),
+            ("    url: https://cli.github.com/\n", "    url: 5\n", "url must start"),
+            ('    install: "Run `pack install`."\n', "    install: [x]\n", "install must be"),
+            ('    install: "Run `pack install`."\n', "    install: 5\n", "install must be"),
+            ('    note: "Use a human reviewer."\n', "    note: [x]\n", "note must be"),
+            ('    note: "Use a human reviewer."\n', "    note: {a: 1}\n", "note must be"),
+            ("  - id: gh\n", "  - id: [gh]\n", "id: name must be"),
+            ("  - id: gh\n", "  - id: null\n", "id: name must be"),
+        ]
+        for old, new, message in cases:
+            with self.subTest(new=new):
+                self.edit(old, new)
+                self.assert_error(message)
+
+    def test_wrongly_typed_for_and_optional_are_errors(self) -> None:
+        old = '      - {id: gh, for: "talking to GitHub"}\n'
+        cases = [
+            ("{id: gh, for: [x]}", "for must say"),
+            ("{id: gh, for: null}", "for must say"),
+            ('{id: gh, for: "x", optional: [true]}', "optional must be true or false"),
+            ('{id: gh, for: "x", optional: null}', "optional must be true or false"),
+        ]
+        for item, message in cases:
+            with self.subTest(item=item):
+                self.edit(old, f"      - {item}\n")
+                self.assert_error(message)
+
+    def test_requires_must_be_a_list(self) -> None:
+        self.edit(
+            '    requires:\n      - {id: gh, for: "talking to GitHub"}\n', "    requires: 5\n"
+        )
+        self.assert_error("requires must be a list")
+        skill_block = (
+            "        requires:\n"
+            '          - {id: packs, for: "planning <releases>"}\n'
+            '          - {id: reviewer, optional: true, for: "feedback"}\n'
+        )
+        for bad in ("7", "null", "{a: 1}"):
+            with self.subTest(bad=bad):
+                self.edit(skill_block, f"        requires: {bad}\n")
+                self.assert_error("requires must be a list")
+
     def test_mapped_skill_must_still_exist(self) -> None:
         self.edit("name: semver-bump", "name: missing-skill")
         self.assert_error("missing-skill")

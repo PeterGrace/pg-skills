@@ -36,6 +36,16 @@ dependencies:
     kind: cli
     description: "A Python package and script runner. This repository's validator and tests run through it."
     url: https://docs.astral.sh/uv/
+  - id: jq
+    name: jq
+    kind: cli
+    description: "A command-line JSON processor. The scripts of github-issue-burndown parse GitHub API output with it."
+    url: https://jqlang.org/
+  - id: python
+    name: Python 3
+    kind: cli
+    description: "The Python interpreter. The token-usage-review script runs on it and uses only the standard library."
+    url: https://www.python.org/
   - id: superpowers
     name: superpowers
     kind: skill-pack
@@ -116,6 +126,7 @@ plugins:
           - {id: telekin, optional: true, for: "background reading in the author's catalog"}
       - name: github-issue-burndown
         requires:
+          - {id: jq, for: "its scripts (`next-issue.sh`, `brooke-ok.sh` and the others) parse GitHub API JSON with it"}
           - {id: review-bot, for: "reviewing every PR; its scripts read the author's Brooke bot"}
           - {id: telekin, optional: true, for: "background reading in the author's catalog"}
       - name: github-epic-close-out
@@ -151,7 +162,9 @@ plugins:
     category: Developer Tools
     keywords: [usage, tokens, cost, subagents, limits]
     skills:
-      - token-usage-review
+      - name: token-usage-review
+        requires:
+          - {id: python, for: "running `scripts/usage_report.py`"}
 
   - name: study-guides
     description: "Skills for writing grounded study documentation for a codebase (architecture overview, module deep dives, glossary, flashcards), fact-checking it against the code, and reconciling the fact-check back into the docs."

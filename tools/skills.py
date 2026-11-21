@@ -343,6 +343,9 @@ def parse_requires(
         if "for" in item and (not isinstance(purpose, str) or not purpose.strip()):
             report.add(here, "for must say, in a non-empty string, what the dependency is used for")
             continue
+        if "id" in item and not isinstance(dep_id, str):
+            report.add(here, "id must be a string naming a dependency")
+            continue
         if not isinstance(dep_id, str):
             continue
         if dep_id not in known:
@@ -374,14 +377,16 @@ def parse_dependency(raw: object, index: int, report: Report) -> Dependency | No
         if key in raw and (not isinstance(raw[key], str) or not raw[key].strip()):
             report.add(where, f"{key} must be a non-empty string")
     kind = raw.get("kind")
-    if "kind" in raw and kind not in DEPENDENCY_KINDS:
+    # A YAML list or mapping is unhashable, so check the type before testing membership.
+    kind_ok = isinstance(kind, str) and kind in DEPENDENCY_KINDS
+    if "kind" in raw and not kind_ok:
         report.add(where, f"kind must be one of: {', '.join(DEPENDENCY_KINDS)}")
     url = raw.get("url")
     if url is not None and (
         not isinstance(url, str) or not url.startswith("https://") or len(url.split()) != 1
     ):
         report.add(where, "url must start with https:// and contain no spaces")
-    if url is None and kind in DEPENDENCY_KINDS:
+    if url is None and kind_ok:
         if kind != "service":
             report.add(where, f"a dependency of kind {kind!r} needs a url")
         elif "note" not in raw:
