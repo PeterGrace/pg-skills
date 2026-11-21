@@ -273,5 +273,55 @@ class GenerateTest(RepoTestCase):
             self.assertEqual(skills.main(["--root", root, "validate"]), 0)
 
 
+SITE = ("example/skills", "/docs/reference")
+
+
+class ReferenceTest(RepoTestCase):
+    def pages(self) -> dict[str, str]:
+        report = skills.validate(self.root)
+        self.assertEqual(self.messages(), [])
+        pages: dict[str, str] = skills.reference_pages(
+            self.root, report.catalog, skills.SiteContext(*SITE)
+        )
+        return pages
+
+    def test_writes_one_page_per_skill(self) -> None:
+        self.assertEqual(
+            sorted(self.pages()), ["skills/commit-messages.md", "skills/semver-bump.md"]
+        )
+
+    def test_skill_page_links_plugin_and_source(self) -> None:
+        text = self.pages()["skills/semver-bump.md"]
+        self.assertTrue(text.startswith('---\ntitle: "semver-bump"\n'))
+        self.assertIn("> Does semver-bump. Use when asked.", text)
+        self.assertIn("| Plugin | [release-tools](/docs/reference/plugins/release-tools/) |", text)
+        self.assertIn("| Invoke as | `release-tools:semver-bump` |", text)
+        self.assertIn(
+            "(https://github.com/example/skills/blob/main/"
+            "plugins/release-tools/skills/semver-bump/SKILL.md)",
+            text,
+        )
+        self.assertIn("sidebar:\n  order: 1\n", text)
+        self.assertIn(skills.GENERATED_NOTE, text)
+
+    def test_skill_page_escapes_angle_brackets(self) -> None:
+        self.write(
+            "plugins/release-tools/skills/semver-bump/SKILL.md",
+            '---\nname: semver-bump\ndescription: "Review <pr-url> and &lt;x&gt; & co."\n---\n',
+        )
+        text = self.pages()["skills/semver-bump.md"]
+        self.assertIn("> Review &lt;pr-url&gt; and &lt;x&gt; &amp; co.", text)
+        self.assertIn('description: "Review <pr-url> and <x> & co."', text)
+
+    def test_skill_page_lists_claude_code_settings(self) -> None:
+        self.write(
+            "plugins/release-tools/skills/semver-bump/SKILL.md",
+            skill_md("semver-bump", "disable-model-invocation: true\n"),
+        )
+        text = self.pages()["skills/semver-bump.md"]
+        self.assertIn("## Claude Code settings\n\n- `disable-model-invocation`: `true`", text)
+        self.assertNotIn("## Claude Code settings", self.pages()["skills/commit-messages.md"])
+
+
 if __name__ == "__main__":
     unittest.main()
