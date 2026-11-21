@@ -17,7 +17,9 @@ step, and [`just`](/pg-skills/reference/dependencies/#just) for its gates. If yo
 [plan a milestone](/pg-skills/how-to/plan-a-milestone/) first.
 
 For the reasoning, read
-[Why one subagent per issue](/pg-skills/explanation/one-subagent-per-issue/).
+[Why one subagent per issue](/pg-skills/explanation/one-subagent-per-issue/). To run
+this without my review bot or my machine's setup, see
+[Adapt the skills to your setup](/pg-skills/how-to/adapt-the-skills/).
 
 ## Steps
 
@@ -62,6 +64,8 @@ For the reasoning, read
 
 ## Start on Sonnet
 
+For why, see [the model policy](/pg-skills/explanation/model-policy/).
+
 Leave the model off. Implementers start on Sonnet. Opus only takes over a PR on a
 recorded trigger:
 
@@ -85,7 +89,8 @@ I named four. Each one has a recorded incident, and most have a rule in the skil
   re-trigger command, use it when no review shows up. Don't use it on an unchanged
   head: Brooke won't re-review one (see
   [Answer review comments](/pg-skills/how-to/answer-review-comments/)).
-- **Machine overload.** Too many agents, gates or build caches at once. Start
+- **Machine overload.** Too many agents, gates or build caches at once (see
+  [working on a shared machine](/pg-skills/explanation/shared-machine/)). Start
   parallel issues only when they touch different files. Run heavy gates through a
   lock if the project has one, and run `cargo clean` in a worktree before you remove
   it.
