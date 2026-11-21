@@ -15,7 +15,8 @@ Posting `/prrb` on a PR asks her to review it again. The `github-issue-burndown`
 scripts read her reviews (`brooke-ok.sh`, `wait-brooke.sh`, `brooke-security.sh`).
 **Adapt:** put your reviewer's login in the scripts' `bot=` line and your bot's
 re-trigger command in place of `/prrb`. If no bot reviews your PRs, review them
-yourself where the skills wait for Brooke.
+yourself where the skills wait for Brooke. Which skills need a reviewer is on the
+[dependencies page](https://petergrace.github.io/pg-skills/reference/dependencies/#review-bot).
 
 ### pgrace
 
@@ -48,25 +49,29 @@ My private catalog of notes about my systems, projects and processes, in Open
 Knowledge Format and served over MCP by Telekin
 ([okf_mcp](https://github.com/hypotheosis/okf_mcp)). Skills point to concepts in it,
 such as `/processes/subagent-pr-workflow.md`, as background reading. You can't read
-it. **Adapt:** skip those pointers, or point them at your own docs.
+it. The server itself is listed on the [dependencies page](https://petergrace.github.io/pg-skills/reference/dependencies/#okf-mcp), with the
+skills that use it. **Adapt:** skip those pointers, or point them at your own docs.
 
 ### claims-mcp and `claims-audit`
 
 My MCP server and skill for auditing a change's claims: a ledger (`claims.json`)
 of claims, evidence and supported/refuted verdicts. The `*-issue-to-pr` skills run
-`claims-audit` on a fresh subagent before opening a PR. **Adapt:** install
+`claims-audit` on a fresh subagent before opening a PR. Where to get them, and which
+skills need them, is on the dependencies page for
+[claims-mcp](https://petergrace.github.io/pg-skills/reference/dependencies/#claims-mcp) and [claims-audit](https://petergrace.github.io/pg-skills/reference/dependencies/#claims-audit). **Adapt:** install
 claims-mcp, or drop that step and review the PR against the issue yourself.
 
 ### superpowers
 
 The [superpowers](https://github.com/obra/superpowers) Claude Code plugin. Skills
 that name `superpowers:<skill>` (for example `superpowers:writing-plans`) need it
-installed.
+installed. See its [dependencies entry](https://petergrace.github.io/pg-skills/reference/dependencies/#superpowers).
 
 ### forgejo-mcp
 
 [raohwork/forgejo-mcp](https://github.com/raohwork/forgejo-mcp), the MCP server
-the `forgejo-*` skills use to talk to a Forgejo instance. **Adapt:** configure it for
+the `forgejo-*` skills use to talk to a Forgejo instance
+([dependencies entry](https://petergrace.github.io/pg-skills/reference/dependencies/#forgejo-mcp)). **Adapt:** configure it for
 your Forgejo host and token.
 
 ## Conventions

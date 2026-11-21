@@ -123,6 +123,39 @@ class Issue:
         return f"{level}: {self.path}: {self.message}"
 
 
+# Kinds of external dependency, in the order the dependencies page lists them.
+DEPENDENCY_KINDS = {
+    "skill-pack": "Skill packs",
+    "skill": "Skills",
+    "mcp-server": "MCP servers",
+    "cli": "Command-line tools",
+    "service": "Services",
+}
+DEPENDENCIES_PAGE = "dependencies"
+
+
+@dataclass(frozen=True)
+class Dependency:
+    """Something the skills need that this repository doesn't ship."""
+
+    id: str
+    name: str
+    kind: str
+    description: str
+    url: str | None = None
+    note: str | None = None
+    install: str | None = None
+
+
+@dataclass(frozen=True)
+class Requirement:
+    """One `requires` item: a dependency, whether it is optional, and what it is for."""
+
+    id: str
+    purpose: str
+    optional: bool = False
+
+
 @dataclass(frozen=True)
 class Plugin:
     """A validated `catalog.yaml` plugin entry."""
@@ -133,6 +166,8 @@ class Plugin:
     category: str
     keywords: tuple[str, ...]
     skills: tuple[str, ...]
+    requires: tuple[Requirement, ...] = ()
+    skill_requires: dict[str, tuple[Requirement, ...]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -143,6 +178,7 @@ class Catalog:
     description: str
     owner: dict[str, str]
     plugins: tuple[Plugin, ...]
+    dependencies: tuple[Dependency, ...] = ()
 
 
 @dataclass
@@ -280,17 +316,123 @@ def check_skill(path: Path, dir_name: str, report: Report) -> None:
                     )
 
 
-def parse_plugin(raw: object, index: int, report: Report) -> Plugin | None:
+def parse_requires(
+    raw: object, where: str, known: frozenset[str], report: Report
+) -> tuple[Requirement, ...]:
+    """Validates a `requires` list. Problems go to `report`; bad items are dropped."""
+    if not isinstance(raw, list):
+        report.add(where, "requires must be a list")
+        return ()
+    found: list[Requirement] = []
+    seen: set[str] = set()
+    for index, item in enumerate(raw):
+        here = f"{where}: requires[{index}]"
+        if not isinstance(item, dict):
+            report.add(here, "must be a mapping with id and for")
+            continue
+        for key in unknown_keys(item, frozenset({"id", "optional", "for"})):
+            report.add(here, f"unknown key {key!r}")
+        for key in ("id", "for"):
+            if key not in item:
+                report.add(here, f"missing required key {key!r}")
+        dep_id, purpose = item.get("id"), item.get("for")
+        optional = item.get("optional", False)
+        if not isinstance(optional, bool):
+            report.add(here, "optional must be true or false")
+            optional = False
+        if "for" in item and (not isinstance(purpose, str) or not purpose.strip()):
+            report.add(here, "for must say, in a non-empty string, what the dependency is used for")
+            continue
+        if not isinstance(dep_id, str):
+            continue
+        if dep_id not in known:
+            report.add(here, f"requires unknown dependency {dep_id!r}")
+        elif dep_id in seen:
+            report.add(here, f"requires {dep_id!r} more than once")
+        elif isinstance(purpose, str):
+            seen.add(dep_id)
+            found.append(Requirement(dep_id, purpose, optional))
+    return tuple(found)
+
+
+def parse_dependency(raw: object, index: int, report: Report) -> Dependency | None:
+    """Validates one `dependencies[]` entry, returning it if it is well-formed."""
+    where = f"{CATALOG_FILE}: dependencies[{index}]"
+    if not isinstance(raw, dict):
+        report.add(where, "must be a mapping")
+        return None
+    errors_before = len(report.issues)
+    allowed = frozenset({"id", "name", "kind", "description", "url", "note", "install"})
+    for key in unknown_keys(raw, allowed):
+        report.add(where, f"unknown key {key!r}")
+    for key in ("id", "name", "kind", "description"):
+        if key not in raw:
+            report.add(where, f"missing required key {key!r}")
+    if "id" in raw and (problem := name_problem(raw["id"])):
+        report.add(where, f"id: {problem}")
+    for key in ("name", "description", "note", "install"):
+        if key in raw and (not isinstance(raw[key], str) or not raw[key].strip()):
+            report.add(where, f"{key} must be a non-empty string")
+    kind = raw.get("kind")
+    if "kind" in raw and kind not in DEPENDENCY_KINDS:
+        report.add(where, f"kind must be one of: {', '.join(DEPENDENCY_KINDS)}")
+    url = raw.get("url")
+    if url is not None and (
+        not isinstance(url, str) or not url.startswith("https://") or len(url.split()) != 1
+    ):
+        report.add(where, "url must start with https:// and contain no spaces")
+    if url is None and kind in DEPENDENCY_KINDS:
+        if kind != "service":
+            report.add(where, f"a dependency of kind {kind!r} needs a url")
+        elif "note" not in raw:
+            report.add(where, "a service without a url needs a note saying what to use instead")
+    if len(report.issues) > errors_before:
+        return None
+    return Dependency(
+        id=str(raw["id"]),
+        name=str(raw["name"]),
+        kind=str(kind),
+        description=str(raw["description"]),
+        url=url,
+        note=raw.get("note"),
+        install=raw.get("install"),
+    )
+
+
+def parse_dependencies(raw: object, report: Report) -> tuple[Dependency, ...]:
+    """Validates the top-level `dependencies` list."""
+    if raw is None:
+        return ()
+    if not isinstance(raw, list):
+        report.add(CATALOG_FILE, "dependencies must be a list")
+        return ()
+    found: list[Dependency] = []
+    for index, entry in enumerate(raw):
+        dependency = parse_dependency(entry, index, report)
+        if dependency is None:
+            continue
+        if any(dependency.id == other.id for other in found):
+            report.add(CATALOG_FILE, f"dependency {dependency.id!r} is listed twice")
+        else:
+            found.append(dependency)
+    return tuple(found)
+
+
+def parse_plugin(
+    raw: object, index: int, known: frozenset[str], report: Report
+) -> Plugin | None:
     """Validates one `plugins[]` entry, returning it if it is well-formed."""
     where = f"{CATALOG_FILE}: plugins[{index}]"
     if not isinstance(raw, dict):
         report.add(CATALOG_FILE, f"plugins[{index}] must be a mapping")
         return None
     errors_before = len(report.issues)
-    allowed = frozenset({"name", "description", "version", "category", "keywords", "skills"})
+    allowed = frozenset(
+        {"name", "description", "version", "category", "keywords", "skills", "requires"}
+    )
     for key in unknown_keys(raw, allowed):
         report.add(where, f"unknown key {key!r}")
-    for key in sorted(allowed - {"keywords"} - raw.keys()):
+    for key in sorted(allowed - {"keywords", "requires"} - raw.keys()):
         report.add(where, f"missing required key {key!r}")
 
     name = raw.get("name")
@@ -311,18 +453,34 @@ def parse_plugin(raw: object, index: int, report: Report) -> Plugin | None:
     keywords = raw.get("keywords", [])
     if not isinstance(keywords, list) or not all(isinstance(k, str) for k in keywords):
         report.add(where, "keywords must be a list of strings")
-    skills = raw.get("skills")
-    if not isinstance(skills, list):
+    requires = parse_requires(raw["requires"], where, known, report) if "requires" in raw else ()
+    raw_skills = raw.get("skills")
+    skills: list[str] = []
+    skill_requires: dict[str, tuple[Requirement, ...]] = {}
+    if not isinstance(raw_skills, list):
         report.add(where, "skills must be a list of skill names")
     else:
-        for skill in skills:
-            if problem := name_problem(skill):
+        for skill in raw_skills:
+            if isinstance(skill, dict):
+                skill_where = f"{where}: skills[{len(skills)}]"
+                for key in unknown_keys(skill, frozenset({"name", "requires"})):
+                    report.add(skill_where, f"unknown key {key!r}")
+                if "requires" not in skill:
+                    report.add(skill_where, "missing required key 'requires'")
+                skill_name = skill.get("name")
+                reqs = parse_requires(skill.get("requires", []), skill_where, known, report)
+            else:
+                skill_name, reqs = skill, ()
+            if problem := name_problem(skill_name):
                 report.add(where, f"skills: {problem}")
+            elif isinstance(skill_name, str):
+                skills.append(skill_name)
+                if reqs:
+                    skill_requires[skill_name] = reqs
 
     if len(report.issues) > errors_before:
         return None
     assert isinstance(name, str) and isinstance(version, str) and isinstance(category, str)
-    assert isinstance(skills, list)
     return Plugin(
         name=name,
         description=str(raw["description"]),
@@ -330,6 +488,8 @@ def parse_plugin(raw: object, index: int, report: Report) -> Plugin | None:
         category=category,
         keywords=tuple(keywords),
         skills=tuple(skills),
+        requires=requires,
+        skill_requires=skill_requires,
     )
 
 
@@ -339,7 +499,7 @@ def parse_catalog(raw: object, report: Report) -> Catalog | None:
         report.add(CATALOG_FILE, "the catalog must be a YAML mapping")
         return None
     errors_before = len(report.issues)
-    for key in unknown_keys(raw, frozenset({"schema_version", "marketplace", "plugins"})):
+    for key in unknown_keys(raw, frozenset({"schema_version", "marketplace", "dependencies", "plugins"})):
         report.add(CATALOG_FILE, f"unknown key {key!r}")
     if raw.get("schema_version") != SCHEMA_VERSION:
         report.add(CATALOG_FILE, f"schema_version must be {SCHEMA_VERSION}")
@@ -377,14 +537,33 @@ def parse_catalog(raw: object, report: Report) -> Catalog | None:
                 else:
                     owner[key] = value
 
+    dependencies = parse_dependencies(raw.get("dependencies"), report)
+    known = frozenset(dependency.id for dependency in dependencies)
     raw_plugins = raw.get("plugins")
     plugins: list[Plugin] = []
     if not isinstance(raw_plugins, list):
         report.add(CATALOG_FILE, "plugins must be a list")
     else:
         for index, entry in enumerate(raw_plugins):
-            if plugin := parse_plugin(entry, index, report):
+            if plugin := parse_plugin(entry, index, known, report):
                 plugins.append(plugin)
+        used = {
+            requirement.id
+            for plugin in plugins
+            for requirement in (
+                *plugin.requires,
+                *(r for reqs in plugin.skill_requires.values() for r in reqs),
+            )
+        }
+        # A plugin dropped for another error may have been the only user, so check only
+        # when every plugin parsed.
+        if len(plugins) == len(raw_plugins):
+            for dependency in dependencies:
+                if dependency.id not in used:
+                    report.add(
+                        CATALOG_FILE,
+                        f"dependency {dependency.id!r} is not required by any plugin or skill",
+                    )
 
     if len(report.issues) > errors_before:
         return None
@@ -393,6 +572,7 @@ def parse_catalog(raw: object, report: Report) -> Catalog | None:
         description=str(market["description"]),
         owner=owner,
         plugins=tuple(plugins),
+        dependencies=dependencies,
     )
 
 
@@ -646,8 +826,28 @@ def read_frontmatter(path: Path) -> tuple[dict[str, Any], str]:
     return front, parts[1]
 
 
+def requires_lines(
+    requirements: Sequence[Requirement],
+    catalog: Catalog,
+    ctx: SiteContext,
+    suffix: str = "",
+) -> list[str]:
+    """Returns one Markdown bullet per requirement, linking the dependencies page."""
+    names = {dependency.id: dependency.name for dependency in catalog.dependencies}
+    return [
+        f"- [{md_text(names[req.id])}]({ctx.link(DEPENDENCIES_PAGE)}#{req.id}), "
+        f"{'optional' if req.optional else 'required'}: {md_text(req.purpose)}{suffix}"
+        for req in requirements
+    ]
+
+
 def skill_page(
-    plugin: Plugin, skill: str, front: dict[str, Any], ctx: SiteContext, order: int
+    plugin: Plugin,
+    skill: str,
+    front: dict[str, Any],
+    catalog: Catalog,
+    ctx: SiteContext,
+    order: int,
 ) -> str:
     """Returns the reference page for one skill."""
     source = f"{PLUGINS_DIR}/{plugin.name}/{SKILLS_DIR}/{skill}/{SKILL_FILE}"
@@ -668,6 +868,17 @@ def skill_page(
     ]
     if settings:
         body += ["", "## Claude Code settings", "", *settings]
+    own = plugin.skill_requires.get(skill, ())
+    own_ids = {req.id for req in own}
+    inherited = [req for req in plugin.requires if req.id not in own_ids]
+    if own or inherited:
+        body += [
+            "",
+            "## Requires",
+            "",
+            *requires_lines(own, catalog, ctx),
+            *requires_lines(inherited, catalog, ctx, " (from the plugin)"),
+        ]
     return page(skill, description, "\n".join(body), order)
 
 
@@ -730,6 +941,11 @@ def plugin_page(
         "",
         *install_rows(plugin, catalog, ctx),
         "",
+    ]
+    if plugin.requires:
+        body += ["", "## Requires", "", *requires_lines(plugin.requires, catalog, ctx)]
+    body += [
+        "",
         "## Skills",
         "",
         *[f"- [{skill}]({ctx.link('skills', skill)})" for skill in plugin.skills],
@@ -774,6 +990,63 @@ def agent_page(plugin: Plugin, path: Path, ctx: SiteContext, order: int) -> tupl
     return name, page(name, description, "\n".join(body), order)
 
 
+def needed_by_lines(dependency: Dependency, catalog: Catalog, ctx: SiteContext) -> list[str]:
+    """Returns a bullet for each plugin and skill that requires `dependency`."""
+    lines: list[str] = []
+
+    def add(label: str, name: str, link: str, req: Requirement) -> None:
+        state = "optional" if req.optional else "required"
+        lines.append(f"  - {label} [{name}]({link}), {state}: {md_text(req.purpose)}")
+
+    for plugin in catalog.plugins:
+        for req in plugin.requires:
+            if req.id == dependency.id:
+                add("Plugin", plugin.name, ctx.link("plugins", plugin.name), req)
+        for skill in plugin.skills:
+            for req in plugin.skill_requires.get(skill, ()):
+                if req.id == dependency.id:
+                    add("Skill", skill, ctx.link("skills", skill), req)
+    return lines
+
+
+def dependencies_page(catalog: Catalog, ctx: SiteContext) -> str | None:
+    """Returns the dependencies page, or None if the catalog declares no dependencies."""
+    if not catalog.dependencies:
+        return None
+    body = [
+        "These are the things the skills here rely on but this repository doesn't ship: "
+        "other skill packs, MCP servers, command-line tools and services. Each entry says "
+        "where to get it and which plugins and skills need it, as required or optional.",
+    ]
+    for kind, label in DEPENDENCY_KINDS.items():
+        members = [d for d in catalog.dependencies if d.kind == kind]
+        if not members:
+            continue
+        body += ["", f"## {label}"]
+        for dependency in members:
+            body += [
+                "",
+                f'<a id="{dependency.id}"></a>',
+                f"### {md_text(dependency.name)}",
+                "",
+                md_text(dependency.description),
+                "",
+            ]
+            if dependency.url:
+                body.append(f"- **Link:** <{dependency.url}>")
+            if dependency.install:
+                body.append(f"- **Install:** {md_text(dependency.install)}")
+            if dependency.note:
+                body.append(f"- **Note:** {md_text(dependency.note)}")
+            body += ["- **Needed by:**", *needed_by_lines(dependency, catalog, ctx)]
+    return page(
+        "Dependencies",
+        "What the skills need that this repository doesn't ship, where to get it, and "
+        "which plugins and skills need it.",
+        "\n".join(body),
+    )
+
+
 def glossary_page(root: Path) -> str | None:
     """Returns GLOSSARY.md as a page, without its own title heading, if it exists."""
     path = root / "GLOSSARY.md"
@@ -811,7 +1084,12 @@ def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str,
             front, _ = read_frontmatter(
                 root / PLUGINS_DIR / plugin.name / SKILLS_DIR / skill / SKILL_FILE
             )
-            pages[f"skills/{skill}.md"] = skill_page(plugin, skill, front, ctx, skill_order)
+            pages[f"skills/{skill}.md"] = skill_page(
+                plugin, skill, front, catalog, ctx, skill_order
+            )
+    dependencies = dependencies_page(catalog, ctx)
+    if dependencies is not None:
+        pages[f"{DEPENDENCIES_PAGE}.md"] = dependencies
     glossary = glossary_page(root)
     if glossary is not None:
         pages["glossary.md"] = glossary

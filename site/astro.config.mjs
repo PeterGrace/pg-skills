@@ -17,6 +17,7 @@ const reference = [
 		items: [{ autogenerate: { directory: 'reference/skills' } }],
 	},
 	{ label: 'Agents', items: [{ autogenerate: { directory: 'reference/agents' } }] },
+	{ label: 'Dependencies', slug: 'reference/dependencies' },
 	{ label: 'Glossary', slug: 'reference/glossary' },
 ];
 

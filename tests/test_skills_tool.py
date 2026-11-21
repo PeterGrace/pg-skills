@@ -186,6 +186,224 @@ class ValidateTest(RepoTestCase):
         self.assertTrue(any("warning:" in str(issue) for issue in report.issues))
 
 
+DEPS_CATALOG = CATALOG.replace(
+    "plugins:\n",
+    textwrap.dedent(
+        """\
+        dependencies:
+          - id: gh
+            name: GitHub CLI
+            kind: cli
+            description: "The GitHub command line."
+            url: https://cli.github.com/
+          - id: packs
+            name: Example Pack
+            kind: skill-pack
+            description: "A pack of skills."
+            url: https://example.com/packs
+            install: "Run `pack install`."
+          - id: reviewer
+            name: A reviewer
+            kind: service
+            description: "Someone who reviews."
+            note: "Use a human reviewer."
+        plugins:
+        """
+    ),
+    1,
+).replace(
+    "    skills:\n      - semver-bump\n",
+    "    requires:\n"
+    '      - {id: gh, for: "talking to GitHub"}\n'
+    "    skills:\n"
+    "      - name: semver-bump\n"
+    "        requires:\n"
+    '          - {id: packs, for: "planning <releases>"}\n'
+    '          - {id: reviewer, optional: true, for: "feedback"}\n',
+    1,
+)
+
+
+class DependenciesTestCase(RepoTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.set_catalog(DEPS_CATALOG)
+
+    def set_catalog(self, text: str) -> None:
+        self.write("catalog.yaml", text)
+
+    def edit(self, old: str, new: str) -> None:
+        self.assertIn(old, DEPS_CATALOG)
+        self.set_catalog(DEPS_CATALOG.replace(old, new, 1))
+
+
+class DependencyValidateTest(DependenciesTestCase):
+    def test_valid_dependencies_have_no_issues(self) -> None:
+        report = skills.validate(self.root)
+        self.assertEqual(self.messages(), [])
+        catalog = report.catalog
+        self.assertEqual([d.id for d in catalog.dependencies], ["gh", "packs", "reviewer"])
+        plugin = catalog.plugins[0]
+        self.assertEqual(plugin.skills, ("semver-bump",))
+        self.assertEqual([r.id for r in plugin.requires], ["gh"])
+        skill = plugin.skill_requires["semver-bump"]
+        self.assertEqual([(r.id, r.optional) for r in skill], [("packs", False), ("reviewer", True)])
+
+    def test_string_skill_form_still_works(self) -> None:
+        self.write("catalog.yaml", CATALOG)
+        self.assertEqual(self.messages(), [])
+
+    def test_unknown_requires_id_is_an_error(self) -> None:
+        self.edit("{id: gh, for:", "{id: nope, for:")
+        self.assert_error("requires unknown dependency 'nope'")
+
+    def test_unknown_skill_requires_id_is_an_error(self) -> None:
+        self.edit("{id: packs, for:", "{id: nope, for:")
+        self.assert_error("requires unknown dependency 'nope'")
+
+    def test_unused_dependency_is_an_error(self) -> None:
+        self.edit('          - {id: reviewer, optional: true, for: "feedback"}\n', "")
+        self.assert_error("dependency 'reviewer' is not required by any plugin or skill")
+
+    def test_non_https_url_is_an_error(self) -> None:
+        self.edit("https://cli.github.com/", "http://cli.github.com/")
+        self.assert_error("url must start with https://")
+
+    def test_duplicate_dependency_ids_are_an_error(self) -> None:
+        self.edit("id: packs", "id: gh")
+        self.assert_error("dependency 'gh' is listed twice")
+
+    def test_unknown_kind_is_an_error(self) -> None:
+        self.edit("kind: cli", "kind: gadget")
+        self.assert_error("kind must be one of")
+
+    def test_unknown_dependency_key_is_an_error(self) -> None:
+        self.edit("kind: cli\n", "kind: cli\n    colour: red\n")
+        self.assert_error("unknown key 'colour'")
+
+    def test_unknown_requires_key_is_an_error(self) -> None:
+        self.edit('{id: gh, for: "talking to GitHub"}', '{id: gh, for: "x", why: "y"}')
+        self.assert_error("unknown key 'why'")
+
+    def test_requires_needs_a_for(self) -> None:
+        self.edit('{id: gh, for: "talking to GitHub"}', "{id: gh}")
+        self.assert_error("missing required key 'for'")
+
+    def test_optional_must_be_a_boolean(self) -> None:
+        self.edit("optional: true", 'optional: "yes"')
+        self.assert_error("optional must be true or false")
+
+    def test_non_service_needs_a_url(self) -> None:
+        self.edit("    url: https://cli.github.com/\n", "")
+        self.assert_error("needs a url")
+
+    def test_service_without_url_needs_a_note(self) -> None:
+        self.edit('    note: "Use a human reviewer."\n', "")
+        self.assert_error("without a url needs a note")
+
+    def test_skill_mapping_needs_requires_and_known_keys(self) -> None:
+        self.edit("      - name: semver-bump\n", "      - name: semver-bump\n        extra: 1\n")
+        self.assert_error("unknown key 'extra'")
+
+    def test_requires_in_one_list_cannot_repeat_an_id(self) -> None:
+        self.edit(
+            '      - {id: gh, for: "talking to GitHub"}\n',
+            '      - {id: gh, for: "talking to GitHub"}\n      - {id: gh, for: "again"}\n',
+        )
+        self.assert_error("requires 'gh' more than once")
+
+    def test_mapped_skill_must_still_exist(self) -> None:
+        self.edit("name: semver-bump", "name: missing-skill")
+        self.assert_error("missing-skill")
+
+
+class DependencyGenerateTest(DependenciesTestCase):
+    def test_manifests_are_identical_with_or_without_dependencies(self) -> None:
+        with_deps = skills.generate(skills.validate(self.root).catalog)
+        self.set_catalog(CATALOG)
+        plain = skills.generate(skills.validate(self.root).catalog)
+        self.assertEqual(with_deps, plain)
+        for text in with_deps.values():
+            self.assertNotIn("requires", text)
+
+
+class DependencyReferenceTest(DependenciesTestCase):
+    def pages(self) -> dict[str, str]:
+        report = skills.validate(self.root)
+        self.assertEqual(self.messages(), [])
+        pages: dict[str, str] = skills.reference_pages(
+            self.root, report.catalog, skills.SiteContext(*SITE)
+        )
+        return pages
+
+    def test_no_dependencies_page_without_dependencies(self) -> None:
+        self.set_catalog(CATALOG)
+        self.assertNotIn("dependencies.md", self.pages())
+
+    def test_dependencies_page_groups_by_kind_in_a_fixed_order(self) -> None:
+        text = self.pages()["dependencies.md"]
+        self.assertTrue(text.startswith('---\ntitle: "Dependencies"\n'))
+        order = [text.index(h) for h in ("## Skill packs", "## Command-line tools", "## Services")]
+        self.assertEqual(order, sorted(order))
+        self.assertNotIn("## MCP servers", text)
+
+    def test_dependency_entry_content(self) -> None:
+        text = self.pages()["dependencies.md"]
+        self.assertIn('<a id="packs"></a>\n### Example Pack', text)
+        self.assertIn("A pack of skills.", text)
+        self.assertIn("**Link:** <https://example.com/packs>", text)
+        self.assertIn("**Install:** Run `pack install`.", text)
+        self.assertIn("**Note:** Use a human reviewer.", text)
+
+    def test_needed_by_links_pages_and_marks_required_or_optional(self) -> None:
+        text = self.pages()["dependencies.md"]
+        self.assertIn(
+            "- Plugin [release-tools](/docs/reference/plugins/release-tools/), required: "
+            "talking to GitHub",
+            text,
+        )
+        self.assertIn(
+            "- Skill [semver-bump](/docs/reference/skills/semver-bump/), required: "
+            "planning &lt;releases&gt;",
+            text,
+        )
+        self.assertIn(
+            "- Skill [semver-bump](/docs/reference/skills/semver-bump/), optional: feedback",
+            text,
+        )
+
+    def test_skill_page_has_a_requires_section(self) -> None:
+        text = self.pages()["skills/semver-bump.md"]
+        self.assertIn("## Requires", text)
+        self.assertIn(
+            "- [Example Pack](/docs/reference/dependencies/#packs), required: "
+            "planning &lt;releases&gt;",
+            text,
+        )
+        self.assertIn("- [A reviewer](/docs/reference/dependencies/#reviewer), optional: feedback", text)
+        self.assertIn(
+            "- [GitHub CLI](/docs/reference/dependencies/#gh), required: talking to GitHub "
+            "(from the plugin)",
+            text,
+        )
+
+    def test_plugin_page_has_a_requires_section(self) -> None:
+        text = self.pages()["plugins/release-tools.md"]
+        self.assertIn(
+            "## Requires\n\n- [GitHub CLI](/docs/reference/dependencies/#gh), required: "
+            "talking to GitHub",
+            text,
+        )
+
+    def test_pages_without_requirements_have_no_requires_section(self) -> None:
+        pages = self.pages()
+        self.assertNotIn("## Requires", pages["plugins/writing.md"])
+        self.assertNotIn("## Requires", pages["skills/commit-messages.md"])
+
+    def test_output_is_deterministic(self) -> None:
+        self.assertEqual(self.pages(), self.pages())
+
+
 class GenerateTest(RepoTestCase):
     def generated(self) -> dict[str, str]:
         report = skills.validate(self.root)

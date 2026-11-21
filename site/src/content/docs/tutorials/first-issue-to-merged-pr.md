@@ -17,10 +17,11 @@ smallest piece of my workflow.
 ## What you need
 
 - [Claude Code](https://claude.com/claude-code), signed in.
-- Git, and the [GitHub CLI](https://cli.github.com/) (`gh`), signed in. Check with
+- [Git](/pg-skills/reference/dependencies/#git), and the
+  [GitHub CLI](/pg-skills/reference/dependencies/#gh) (`gh`), signed in. Check with
   `gh auth status`.
-- [`just`](https://github.com/casey/just), a command runner. The skills run the project's
-  `just fmt` and `just test`.
+- [`just`](/pg-skills/reference/dependencies/#just), a command runner. The skills run the
+  project's `just fmt` and `just test`.
 - Python 3, for the sandbox project below.
 
 ## 1. Install the plugin
@@ -117,7 +118,8 @@ to ask you unless something fails.
    `Cargo.toml`, and says so.
 4. A second, fresh subagent audits the claims in the PR description. Your repository has
    no `claims.json`, so the audit runs in table-only mode and nothing is recorded; the
-   results go into the PR body. The audit follows the `claims-audit` skill, which this
+   results go into the PR body. The audit follows the
+   [`claims-audit`](/pg-skills/reference/dependencies/#claims-audit) skill, which this
    plugin doesn't ship. If your agent can't find it, it may report the audit as skipped,
    and the rest of the tutorial still works.
 5. It commits, pushes, opens a PR whose body includes `Closes #1`, and comments the PR

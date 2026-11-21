@@ -2,7 +2,8 @@
 #
 # This file says which plugins exist and which skills each one ships. Everything about a
 # skill itself lives in its SKILL.md frontmatter. tools/skills.py validates it; unknown
-# keys are errors.
+# keys are errors. The key shapes are documented in
+# plugins/skill-authoring/skills/authoring-skills/SKILL.md.
 schema_version: 1
 
 marketplace:
@@ -11,43 +12,137 @@ marketplace:
   owner:
     name: Peter Grace
 
+# Things the skills need that this repository doesn't ship. The dependencies page on the
+# site is generated from this list. Every entry must be required (or marked optional) by
+# at least one plugin or skill below. Never link a private repository.
+dependencies:
+  - id: git
+    name: Git
+    kind: cli
+    description: "The version control system. The skills create branches and worktrees, commit and push."
+    url: https://git-scm.com/
+  - id: gh
+    name: GitHub CLI (gh)
+    kind: cli
+    description: "GitHub's command-line client. The GitHub skills read and file issues and pull requests with it."
+    url: https://cli.github.com/
+  - id: just
+    name: just
+    kind: cli
+    description: "A command runner. The skills run the target project's `just fmt` and `just test` gates, and this repository's own checks run through it."
+    url: https://github.com/casey/just
+  - id: uv
+    name: uv
+    kind: cli
+    description: "A Python package and script runner. This repository's validator and tests run through it."
+    url: https://docs.astral.sh/uv/
+  - id: superpowers
+    name: superpowers
+    kind: skill-pack
+    description: "A skill pack for coding agents. Skills here that name a `superpowers:` skill need it."
+    url: https://github.com/obra/superpowers
+    install: "In Claude Code, `/plugin install superpowers@claude-plugins-official`."
+  - id: claims-audit
+    name: claims-audit
+    kind: skill
+    description: "The skill that audits a change's claims with recorded evidence and supported, refuted or not-enough-info verdicts. The auditor subagent follows it."
+    url: https://github.com/hypotheosis/claims-mcp/tree/main/skills/claims-audit
+    install: "Copy its folder into `~/.claude/skills/`: `cp -r skills/claims-audit ~/.claude/skills/`, from a checkout of claims-mcp."
+  - id: claims-mcp
+    name: claims-mcp
+    kind: mcp-server
+    description: "An MCP server that keeps a ledger of claims, evidence and verdicts (`claims.json`). The claims-audit skill uses it."
+    url: https://github.com/hypotheosis/claims-mcp
+    install: "Install a release binary, or `cargo install --locked --git https://github.com/hypotheosis/claims-mcp`, then register it with `claude mcp add --scope project claims -- claims-mcp --catalog claims.json`."
+  - id: forgejo-mcp
+    name: forgejo-mcp
+    kind: mcp-server
+    description: "An MCP server for Forgejo. The forgejo-workflows skills read and file issues and pull requests through it."
+    url: https://github.com/raohwork/forgejo-mcp
+    install: "Use its Docker image, `go install github.com/raohwork/forgejo-mcp@latest`, or a release binary, then configure it for your Forgejo host."
+  - id: okf-mcp
+    name: Telekin (okf_mcp) knowledge catalog
+    kind: mcp-server
+    description: "An MCP server for catalogs of Open Knowledge Format notes. Some skills point to concepts in the author's own, private catalog as background reading."
+    url: https://github.com/hypotheosis/okf_mcp
+    note: "The catalog these skills point to is private, so you can't read it. Skip those pointers or use your own notes."
+  - id: review-bot
+    name: A pull-request review bot or a human reviewer
+    kind: service
+    description: "Something that reviews each pull request and posts comments the skills then answer."
+    note: "The author uses Brooke, a self-hosted review bot that isn't public. Use any review bot, or review the PRs yourself. See the glossary for what to change in the scripts."
+
 plugins:
   # Each plugin's skills live in plugins/<name>/skills/<skill>/.
   - name: skill-authoring
     description: "Skills for writing and maintaining the agent skills in this repository."
-    version: 0.1.2
+    version: 0.1.3
     category: Developer Tools
     keywords: [skills, authoring]
     skills:
-      - authoring-skills
+      - name: authoring-skills
+        requires:
+          - {id: just, for: "running `just generate` and `just check`"}
+          - {id: uv, for: "running the validator and tests through `just`"}
 
   - name: github-workflows
     description: "Issue-to-merged-PR workflows on GitHub with the gh CLI: planning features and milestones into issues, grooming and splitting issues, implementing them in worktrees with subagents, answering review-bot feedback, burning down a backlog and closing out epics. Ships the issue-implementer subagent."
     version: 0.1.0
     category: Developer Tools
     keywords: [github, gh, issues, pull-requests, subagents, code-review]
+    requires:
+      - {id: git, for: "branches, worktrees, commits and pushes"}
+      - {id: gh, for: "reading and filing issues and pull requests"}
     skills:
       - github-plan-to-issue
-      - github-milestone-plan-to-issues
+      - name: github-milestone-plan-to-issues
+        requires:
+          - {id: superpowers, for: "writing the milestone plan with `superpowers:writing-plans`"}
+          - {id: okf-mcp, optional: true, for: "background reading in the author's catalog"}
       - github-groom-issue
       - github-issue-to-subissues
-      - github-issue-to-pr
-      - github-address-pr-review
-      - github-epic-to-merged-prs
-      - github-issue-burndown
-      - github-epic-close-out
+      - name: github-issue-to-pr
+        requires:
+          - {id: just, for: "the `just fmt` and `just test` gates, which it stops without"}
+          - {id: claims-audit, for: "the claims audit in step 7a"}
+          - {id: claims-mcp, optional: true, for: "recording the audit in a `claims.json` ledger; table-only mode makes no calls"}
+      - name: github-address-pr-review
+        requires:
+          - {id: review-bot, for: "the review whose comments it answers"}
+          - {id: just, optional: true, for: "the `just fmt` and `just test` gates; it skips missing ones"}
+      - name: github-epic-to-merged-prs
+        requires:
+          - {id: review-bot, for: "reviewing every sub-issue PR, driven by the author's Brooke bot"}
+          - {id: okf-mcp, optional: true, for: "background reading in the author's catalog"}
+      - name: github-issue-burndown
+        requires:
+          - {id: review-bot, for: "reviewing every PR; its scripts read the author's Brooke bot"}
+          - {id: okf-mcp, optional: true, for: "background reading in the author's catalog"}
+      - name: github-epic-close-out
+        requires:
+          - {id: okf-mcp, optional: true, for: "background reading in the author's catalog"}
 
   - name: forgejo-workflows
     description: "Issue-to-PR workflows on Forgejo through the forgejo-mcp server: planning features into issues, grooming and splitting issues, implementing an issue as a pull request, and walking through review comments. Its subagent fan-out uses the issue-implementer agent from github-workflows."
     version: 0.1.0
     category: Developer Tools
     keywords: [forgejo, issues, pull-requests, mcp]
+    requires:
+      - {id: git, for: "branches, worktrees, commits and pushes"}
+      - {id: forgejo-mcp, for: "reading and filing issues and pull requests"}
     skills:
       - forgejo-plan-to-issue
       - forgejo-groom-issue
       - forgejo-issue-to-subissues
-      - forgejo-issue-to-pr
-      - forgejo-address-pr-review
+      - name: forgejo-issue-to-pr
+        requires:
+          - {id: just, for: "the `just fmt` and `just test` gates, which it stops without"}
+          - {id: claims-audit, for: "the claims audit in step 7a"}
+          - {id: claims-mcp, optional: true, for: "recording the audit in a `claims.json` ledger; table-only mode makes no calls"}
+      - name: forgejo-address-pr-review
+        requires:
+          - {id: review-bot, for: "the review whose comments it answers"}
+          - {id: just, optional: true, for: "the `just fmt` and `just test` gates; it skips missing ones"}
 
   - name: usage-analysis
     description: "Skills for working out where Claude Code token usage goes, from local session transcripts: by model, token type, session and subagent type, with the fixes that cut it."

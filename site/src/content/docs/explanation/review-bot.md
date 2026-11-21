@@ -13,7 +13,7 @@ her for and what a copier can use instead.
 ## What you can use instead
 
 Brooke isn't a public product, so you can't install her. Use any review bot, or a
-human reviewer. What matters is the list of things below that a reviewer checks.
+human reviewer ([which skills need one](/pg-skills/reference/dependencies/#review-bot)). What matters is the list of things below that a reviewer checks.
 The skills name Brooke's login and her re-trigger command in places; the
 [glossary](/pg-skills/reference/glossary/) says which names are mine.
 
