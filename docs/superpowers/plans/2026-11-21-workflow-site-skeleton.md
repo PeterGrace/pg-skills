@@ -164,7 +164,11 @@ python3 -I /tmp/glossary_fix.py GLOSSARY.md
 - [ ] **Step 2: Check the result**
 
 Run: `grep -c '^### ' GLOSSARY.md; grep -c '^: ' GLOSSARY.md; sed -n '1,25p' GLOSSARY.md`
-Expected: `14` headings, `0` definition lines, and an entry that looks like:
+Expected: `13` headings, `0` definition lines
+
+> **Corrected (issue #4).** The plan said 14 headings; `GLOSSARY.md` has 13 entries (the issue repeated the 14). The script also writes its helper to an untracked scratch path (for example `target/<n>/glossary_fix.py`) rather than `/tmp`, and `GLOSSARY.md` keeps its trailing newline.
+
+The first entry should look like:
 
 ```markdown
 ### Brooke (`brooke-reviews[bot]`)
