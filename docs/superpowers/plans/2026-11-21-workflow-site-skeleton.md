@@ -728,12 +728,16 @@ Also update the module docstring's usage block with one line:
 - [ ] **Step 4: Run the full check**
 
 Run: `just check`
-Expected: validation `ok`, generated files current, mypy prints nothing, and the tests end `OK` (33 tests).
+Expected: validation `ok`, generated files current, mypy prints nothing, and the tests end `OK` (34 tests).
+
+> **Corrected (issue #7, 2026-11-21).** The count is 34, not 33: Task 3 gained a test for fence handling (`test_demote_headings_tracks_fence_marker_and_length`), and Task 4 adds three on top of the 31 before it.
 
 - [ ] **Step 5: Try it on the real repo**
 
 Run: `uv run --quiet --script tools/skills.py reference --out /tmp/pgref --repo PeterGrace/pg-skills --url-prefix /pg-skills/reference && ls -R /tmp/pgref | head -40 && sed -n '1,30p' /tmp/pgref/agents/issue-implementer.md`
-Expected: `wrote 24 reference pages` (4 plugins, 18 skills, 1 agent, 1 glossary), files under `plugins/`, `skills/`, `agents/`, and an agent page whose table says ``| Subagent type | `github-workflows:issue-implementer` |``. Then `rm -r /tmp/pgref`. If the count differs, check that every catalog skill has a page before going on.
+Expected: `wrote 24 reference pages` (4 plugins, 18 skills, 1 agent, 1 glossary), files under `plugins/`, `skills/`, `agents/`, and an agent page whose table says ``| Subagent type | `github-workflows:issue-implementer` |``. Then `rm -r /tmp/pgref`.
+
+> **Corrected (issue #7, 2026-11-21).** Write the trial output under the worktree's ignored `target/` rather than `/tmp`, never into `site/`. If the count differs, check that every catalog skill has a page before going on.
 
 - [ ] **Step 6: Correct the spec**
 
@@ -1202,7 +1206,7 @@ Run: `rm -rf site/dist && just check && bash -o pipefail -c 'just site-build 2>&
 The command must exit 0. Removing `site/dist` first means Step 2 can only see files this
 build wrote, and `pipefail` makes a failed build fail the command rather than reporting
 `tail`'s success.
-Expected: tests `OK` (33), `wrote 24 reference pages`, and a site build reporting
+Expected: tests `OK` (34), `wrote 24 reference pages`, and a site build reporting
 that every internal link is valid.
 
 - [ ] **Step 2: Check the built site**

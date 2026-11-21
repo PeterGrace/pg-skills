@@ -379,6 +379,31 @@ class ReferenceTest(RepoTestCase):
         self.assertNotIn("# Glossary\n", text.split("---", 2)[2])
         self.assertIn("Intro.\n\n### Brooke\n\nA bot.", text)
 
+    def test_write_replaces_its_own_output(self) -> None:
+        out = self.root / "out"
+        skills.write_reference(out, {"a.md": "1", "skills/b.md": "2"})
+        skills.write_reference(out, {"c.md": "3"})
+        self.assertFalse((out / "a.md").exists())
+        self.assertFalse((out / "skills").exists())
+        self.assertEqual((out / "c.md").read_text(encoding="utf-8"), "3")
+        self.assertTrue((out / skills.GENERATED_MARKER).is_file())
+
+    def test_write_refuses_a_directory_it_did_not_write(self) -> None:
+        self.write("mine/keep.md", "x")
+        with self.assertRaisesRegex(ValueError, "refusing to replace"):
+            skills.write_reference(self.root / "mine", {"a.md": "1"})
+        self.assertTrue((self.root / "mine/keep.md").exists())
+
+    def test_main_reference(self) -> None:
+        out = self.root / "site-ref"
+        args = ["--root", str(self.root), "reference", "--out", str(out)]
+        args += ["--repo", SITE[0], "--url-prefix", SITE[1]]
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(skills.main(args), 0)
+            self.write("plugins/writing/skills/commit-messages/SKILL.md", "no frontmatter\n")
+            self.assertEqual(skills.main(args), 1)
+        self.assertTrue((out / "skills/semver-bump.md").is_file())
+
 
 if __name__ == "__main__":
     unittest.main()
