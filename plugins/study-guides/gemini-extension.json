@@ -1,5 +1,5 @@
 {
   "name": "study-guides",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Skills for writing grounded study documentation for a codebase (architecture overview, module deep dives, glossary, flashcards), fact-checking it against the code, and reconciling the fact-check back into the docs."
 }

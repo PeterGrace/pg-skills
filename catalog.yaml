@@ -97,7 +97,7 @@ plugins:
 
   - name: github-workflows
     description: "Issue-to-merged-PR workflows on GitHub with the gh CLI: planning features and milestones into issues, grooming and splitting issues, implementing them in worktrees with subagents, answering review-bot feedback, burning down a backlog and closing out epics. Ships the issue-implementer subagent."
-    version: 0.1.0
+    version: 0.1.1
     category: Developer Tools
     keywords: [github, gh, issues, pull-requests, subagents, code-review]
     requires:
@@ -122,10 +122,14 @@ plugins:
           - {id: just, optional: true, for: "the `just fmt` and `just test` gates; it skips missing ones"}
       - name: github-epic-to-merged-prs
         requires:
+          - {id: just, for: "the `just fmt` and `just test` gates, which the issue-implementer agents it starts run through github-issue-to-pr"}
+          - {id: claims-audit, for: "the claims audit in github-issue-to-pr's step 7a, which each issue-implementer agent it starts runs"}
           - {id: review-bot, for: "reviewing every sub-issue PR, driven by the author's Brooke bot"}
           - {id: telekin, optional: true, for: "background reading in the author's catalog"}
       - name: github-issue-burndown
         requires:
+          - {id: just, for: "the `just fmt` and `just test` gates, which the issue-implementer agents it starts run through github-issue-to-pr"}
+          - {id: claims-audit, for: "the claims audit in github-issue-to-pr's step 7a, which each issue-implementer agent it starts runs"}
           - {id: jq, for: "its scripts (`next-issue.sh`, `brooke-ok.sh` and the others) parse GitHub API JSON with it"}
           - {id: review-bot, for: "reviewing every PR; its scripts read the author's Brooke bot"}
           - {id: telekin, optional: true, for: "background reading in the author's catalog"}
@@ -136,7 +140,7 @@ plugins:
 
   - name: forgejo-workflows
     description: "Issue-to-PR workflows on Forgejo through the forgejo-mcp server: planning features into issues, grooming and splitting issues, implementing an issue as a pull request, and walking through review comments. Its subagent fan-out uses the issue-implementer agent from github-workflows."
-    version: 0.1.0
+    version: 0.1.1
     category: Developer Tools
     keywords: [forgejo, issues, pull-requests, mcp]
     requires:
@@ -168,7 +172,7 @@ plugins:
 
   - name: study-guides
     description: "Skills for writing grounded study documentation for a codebase (architecture overview, module deep dives, glossary, flashcards), fact-checking it against the code, and reconciling the fact-check back into the docs."
-    version: 0.1.0
+    version: 0.1.1
     category: Productivity
     keywords: [documentation, onboarding, study-guide, flashcards]
     skills:

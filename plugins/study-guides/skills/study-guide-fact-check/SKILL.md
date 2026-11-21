@@ -107,8 +107,22 @@ docs/study-guide/fact-check/
 └── flashcards.review.md
 ```
 
-Re-running overwrites these cleanly. Keep one review file per source doc so a reviewer can
-read a doc and its critique side by side.
+Re-running overwrites the files above cleanly and touches nothing else in `fact-check/`. In
+particular it leaves `RECONCILIATION.md` in place, the audit trail that
+`study-guide-reconcile` writes into this same folder. It describes the review it answered, so
+after a re-run it is stale: keep it, and let the next reconcile pass replace it. Never delete
+it as part of tidying the folder.
+
+Keep one review file per source doc so a reviewer can read a doc and its critique side by
+side. Two sources don't map to one file:
+
+- **Flashcards.** The guide may have several files under `flashcards/`. They share one
+  `flashcards.review.md`, with a section per card file headed by its path
+  (`flashcards/<topic>.txt`), so each finding names the file it came from.
+- **`README.md`.** It is an index and a checklist, not a source of claims about the code, so
+  it gets no review file. Its SME verification checklist is a list of leads: when a finding
+  answers or contradicts a checklist item, name that item in the finding. Items you can't
+  check stay in the SUMMARY's Uncheckable (SME) list.
 
 ## Templates
 

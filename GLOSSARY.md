@@ -12,8 +12,9 @@ My pull-request review bot: the GitHub App of *prrb*, my self-hosted LLM PR
 reviewer, named after my cat. She reviews every PR, posts a scored verdict, inline
 comments and a security section, and acknowledges a request with an 👀 reaction.
 Posting `/prrb` on a PR asks her to review it again. The `github-issue-burndown`
-scripts read her reviews (`brooke-ok.sh`, `wait-brooke.sh`, `brooke-security.sh`).
-**Adapt:** put your reviewer's login in the scripts' `bot=` line and your bot's
+scripts read her reviews (`brooke-ok.sh`, `wait-brooke.sh`, `brooke-security.sh`,
+`merge-if-ready.sh`).
+**Adapt:** put your reviewer's login in the `bot=` line of each of those scripts and your bot's
 re-trigger command in place of `/prrb`. If no bot reviews your PRs, review them
 yourself where the skills wait for Brooke. Which skills need a reviewer is on the
 [dependencies page](https://petergrace.github.io/pg-skills/reference/dependencies/#review-bot).

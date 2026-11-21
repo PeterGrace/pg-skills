@@ -119,8 +119,8 @@ in table-only mode:
 
 | Claim | Verdict | Evidence |
 |---|---|---|
-| "parse_config rejects files over 1 MiB" | supported | `cargo test config::too_large` (1 passed) |
 | "README lists every subcommand" (pre-existing) | refuted | `seal` missing from README.md:120; Fix: add it |
+| "parse_config rejects files over 1 MiB" | supported | `cargo test config::too_large` (1 passed) |
 
 Real tables are on [PR #34](https://github.com/PeterGrace/pg-skills/pull/34) and
 [PR #36](https://github.com/PeterGrace/pg-skills/pull/36), both in table-only mode.

@@ -196,7 +196,7 @@ Split into multiple commits only if the fix is genuinely multi-step (e.g., a pre
 
 ## Step 7a: Audit the claims (mandatory)
 
-The gates in Step 6 check that the code builds and its tests pass. This step checks that the change does what the issue asked and what the PR body is about to say, and that it didn't break anything the project's claims ledger records as working. The full method is the "Auditing a pull request" section of the `claims-audit` skill (installed from `~/repos/claims-mcp/skills/claims-audit`); this step is the part this workflow must do.
+The gates in Step 6 check that the code builds and its tests pass. This step checks that the change does what the issue asked and what the PR body is about to say, and that it didn't break anything the project's claims ledger records as working. The full method is the "Auditing a pull request" section of the `claims-audit` skill (install it from claims-mcp, following [its install guide](https://hypotheosis.github.io/claims-mcp/guides/install.html#3-install-the-skill)); this step is the part this workflow must do.
 
 **1. Pick the mode.**
 - **Ledger mode**: `git ls-files --error-unmatch claims.json` succeeds. Findings go into the ledger and are committed on the branch.
@@ -280,8 +280,8 @@ it re-audited. Refuted first, then not_enough_info, then supported.
 
 | Claim | Verdict | Evidence |
 |-------|---------|----------|
-| CLM-0190 "parse_config rejects files over 1 MiB" | supported | `cargo test config::too_large` (1 passed) |
 | CLM-0044 "README lists every subcommand" (pre-existing) | refuted | `seal` missing from README.md:120; Fix: add it |
+| CLM-0190 "parse_config rejects files over 1 MiB" | supported | `cargo test config::too_large` (1 passed) |
 
 Ledger mode: start each Claim cell with its id, and end the section with
 "Merge with a merge commit: the ledger's anchors pin this branch's commits."

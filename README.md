@@ -47,7 +47,7 @@ The examples below install `skill-authoring`; substitute any plugin name.
 | **Claude apps** (claude.ai, desktop) | *Customize*, *Plugins*, *Add marketplace*, and give it this repo. |
 | **GitHub Copilot CLI** | `copilot plugin marketplace add PeterGrace/pg-skills`, then `copilot plugin install skill-authoring@pg-skills` |
 | **OpenAI Codex** (CLI and desktop app) | `codex plugin marketplace add PeterGrace/pg-skills`, then install from `/plugins` in the CLI or the app's Plugins directory. The IDE extension doesn't support plugins. |
-| **Cursor** | *Customize*, *Plugins*, add this repo as a marketplace, tracking `main`. |
+| **Cursor** | No command-line install. On a Teams or Enterprise plan an admin imports this repo with *Import from Repo* under *Dashboard*, *Plugins & MCPs*, *Team Marketplaces* ([Cursor's plugin docs](https://cursor.com/docs/plugins)); members then find the plugins in *Customize*. Cursor reads `.cursor-plugin/marketplace.json`. |
 | **Gemini CLI** | Gemini can't install an extension from a repo subfolder, so clone first: `git clone git@github.com:PeterGrace/pg-skills.git`, then `gemini extensions install ./pg-skills/plugins/skill-authoring` |
 
 ## Adding or changing a skill
