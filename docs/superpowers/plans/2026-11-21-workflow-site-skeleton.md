@@ -1187,15 +1187,23 @@ And add a section before "Releases":
 ## The documentation site
 
 ```
-just site-dev     # preview at http://localhost:4321/pg-skills/
-just site-build   # what CI runs: generate the reference, build, check every link
+(cd site && npm ci)   # once per checkout: install the site's dependencies (needs Node and npm)
+just site-dev         # preview at http://localhost:4321/pg-skills/
+just site-build       # what CI runs: install, generate the reference, build, check every link
 ```
+
+`just site-dev` doesn't install dependencies; `just site-build` does (`npm ci`), so
+running it once also works.
 
 The reference pages are written by `tools/skills.py reference` from `catalog.yaml`,
 each `SKILL.md`, each plugin's `agents/` and `GLOSSARY.md`, so they never need a
 hand edit. Pushes to `main` that touch the site, the skills or the tooling redeploy
 it. Changes only under `site/` or `docs/` don't cut a release.
 ````
+
+> **Corrected (issue #11, 2026-11-21).** The README section also carries an `npm ci` line before
+> `just site-dev`: `site-dev` doesn't install dependencies, so a fresh checkout failed with
+> `astro: command not found` (review of PR #23). Read `README.md` for the shipped text.
 
 - [ ] **Step 2: The authoring skill**
 
