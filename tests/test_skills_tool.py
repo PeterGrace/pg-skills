@@ -10,6 +10,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+import unittest.mock
 from pathlib import Path
 from types import ModuleType
 
@@ -403,6 +404,68 @@ class ReferenceTest(RepoTestCase):
             self.write("plugins/writing/skills/commit-messages/SKILL.md", "no frontmatter\n")
             self.assertEqual(skills.main(args), 1)
         self.assertTrue((out / "skills/semver-bump.md").is_file())
+
+    def reference_args(self, out: Path) -> list[str]:
+        args = ["--root", str(self.root), "reference", "--out", str(out)]
+        return args + ["--repo", SITE[0], "--url-prefix", SITE[1]]
+
+    def run_main(self, args: list[str]) -> tuple[int, str]:
+        err = io.StringIO()
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+            code: int = skills.main(args)
+        return code, err.getvalue()
+
+    def test_agent_name_cannot_escape_the_output_directory(self) -> None:
+        out = self.root / "site-ref"
+        sibling = self.root / "README.md"
+        sibling.write_text("keep me\n", encoding="utf-8")
+        self.assertEqual(self.run_main(self.reference_args(out))[0], 0)
+        before = sorted(p.relative_to(out) for p in out.rglob("*"))
+        self.write(
+            "plugins/release-tools/agents/evil.md",
+            '---\nname: ../../README\ndescription: "Bad."\n---\n\nBody.\n',
+        )
+        code, err = self.run_main(self.reference_args(out))
+        self.assertEqual(code, 1)
+        self.assertIn("agent name", err)
+        self.assertEqual(sibling.read_text(encoding="utf-8"), "keep me\n")
+        self.assertEqual(sorted(p.relative_to(out) for p in out.rglob("*")), before)
+
+    def test_write_refuses_paths_outside_the_output_before_deleting(self) -> None:
+        out = self.root / "out"
+        skills.write_reference(out, {"a.md": "1"})
+        for bad in ("../escape.md", "sub/../../escape.md", "/abs.md"):
+            with self.assertRaisesRegex(ValueError, "outside"):
+                skills.write_reference(out, {"b.md": "2", bad: "x"})
+            self.assertTrue((out / "a.md").is_file())
+            self.assertFalse((out / "b.md").exists())
+        self.assertFalse((self.root / "escape.md").exists())
+
+    def test_main_reference_reports_a_foreign_output_directory(self) -> None:
+        out = self.root / "mine"
+        self.write("mine/keep.md", "x")
+        code, err = self.run_main(self.reference_args(out))
+        self.assertEqual(code, 1)
+        self.assertIn("refusing to replace", err)
+        self.assertTrue((out / "keep.md").exists())
+
+    def test_main_reference_reports_a_malformed_agent(self) -> None:
+        self.write(
+            "plugins/release-tools/agents/broken.md",
+            "---\nname: [unclosed\n---\n\nBody.\n",
+        )
+        out = self.root / "site-ref"
+        code, err = self.run_main(self.reference_args(out))
+        self.assertEqual(code, 1)
+        self.assertIn("error:", err)
+        self.assertFalse(out.exists())
+
+    def test_main_reference_reports_a_write_failure(self) -> None:
+        out = self.root / "site-ref"
+        with unittest.mock.patch.object(skills, "write_reference", side_effect=OSError("disk full")):
+            code, err = self.run_main(self.reference_args(out))
+        self.assertEqual(code, 1)
+        self.assertIn("error: disk full", err)
 
 
 if __name__ == "__main__":

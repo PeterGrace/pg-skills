@@ -364,6 +364,8 @@ def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str,
     return dict(sorted(pages.items()))
 ```
 
+> **Corrected (issue #7, 2026-11-21, review round 1).** `agent_page` above now rejects an agent `name` that fails `name_problem()`, because the name becomes a path under `agents/`. Its test is `test_agent_name_cannot_escape_the_output_directory`, added in Task 4.
+
 - [ ] **Step 4: Run the tests**
 
 Run: `just test`
@@ -545,7 +547,11 @@ def plugin_page(
 def agent_page(plugin: Plugin, path: Path, ctx: SiteContext, order: int) -> tuple[str, str]:
     """Returns an agent's name and its reference page."""
     front, rules = read_frontmatter(path)
-    name = str(front.get("name", path.stem))
+    name = front.get("name", path.stem)
+    problem = name_problem(name)
+    if problem:
+        raise ValueError(f"{path}: agent {problem}")
+    name = str(name)
     description = str(front.get("description", ""))
     source = f"{PLUGINS_DIR}/{plugin.name}/{AGENTS_DIR}/{path.name}"
     body = [
@@ -675,7 +681,14 @@ Add `import shutil` to the imports (after `import re`), then add after `referenc
 
 ```python
 def write_reference(out: Path, pages: dict[str, str]) -> None:
-    """Replaces `out` with exactly `pages`, if `out` is missing or was written by this tool."""
+    """Replaces `out` with exactly `pages`, if `out` is missing or was written by this tool.
+
+    Every page path must stay inside `out`; this is checked before anything is deleted.
+    """
+    base = out.resolve()
+    for rel in pages:
+        if not (base / rel).resolve().is_relative_to(base) or Path(rel).is_absolute():
+            raise ValueError(f"page path {rel!r} is outside {out}; refusing to write")
     if out.exists():
         foreign = not out.is_dir() or (
             any(out.iterdir()) and not (out / GENERATED_MARKER).is_file()
@@ -728,9 +741,11 @@ Also update the module docstring's usage block with one line:
 - [ ] **Step 4: Run the full check**
 
 Run: `just check`
-Expected: validation `ok`, generated files current, mypy prints nothing, and the tests end `OK` (34 tests).
+Expected: validation `ok`, generated files current, mypy prints nothing, and the tests end `OK` (39 tests).
 
-> **Corrected (issue #7, 2026-11-21).** The count is 34, not 33: Task 3 gained a test for fence handling (`test_demote_headings_tracks_fence_marker_and_length`), and Task 4 adds three on top of the 31 before it.
+> **Corrected (issue #7, 2026-11-21).** The count is 39, not 33: Task 3 gained a test for fence handling (`test_demote_headings_tracks_fence_marker_and_length`), so 31 tests precede Task 4, which adds the three above plus five from review: `test_agent_name_cannot_escape_the_output_directory`, `test_write_refuses_paths_outside_the_output_before_deleting`, `test_main_reference_reports_a_foreign_output_directory`, `test_main_reference_reports_a_malformed_agent` and `test_main_reference_reports_a_write_failure` (in the repository, via `run_main` and `reference_args` helpers).
+
+> **Corrected (issue #7, 2026-11-21, review round 1).** `agent_page` (Task 3) now validates the agent's `name` with `name_problem()` and raises `ValueError`, and `write_reference` refuses any page path that resolves outside `out` before deleting anything. An agent name such as `../../README` would otherwise have written outside the output directory. Both code blocks in this plan are updated.
 
 - [ ] **Step 5: Try it on the real repo**
 
@@ -1206,7 +1221,7 @@ Run: `rm -rf site/dist && just check && bash -o pipefail -c 'just site-build 2>&
 The command must exit 0. Removing `site/dist` first means Step 2 can only see files this
 build wrote, and `pipefail` makes a failed build fail the command rather than reporting
 `tail`'s success.
-Expected: tests `OK` (34), `wrote 24 reference pages`, and a site build reporting
+Expected: tests `OK` (39), `wrote 24 reference pages`, and a site build reporting
 that every internal link is valid.
 
 - [ ] **Step 2: Check the built site**

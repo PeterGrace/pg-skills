@@ -747,7 +747,11 @@ def plugin_page(
 def agent_page(plugin: Plugin, path: Path, ctx: SiteContext, order: int) -> tuple[str, str]:
     """Returns an agent's name and its reference page."""
     front, rules = read_frontmatter(path)
-    name = str(front.get("name", path.stem))
+    name = front.get("name", path.stem)
+    problem = name_problem(name)
+    if problem:
+        raise ValueError(f"{path}: agent {problem}")
+    name = str(name)
     description = str(front.get("description", ""))
     source = f"{PLUGINS_DIR}/{plugin.name}/{AGENTS_DIR}/{path.name}"
     body = [
@@ -815,7 +819,14 @@ def reference_pages(root: Path, catalog: Catalog, ctx: SiteContext) -> dict[str,
 
 
 def write_reference(out: Path, pages: dict[str, str]) -> None:
-    """Replaces `out` with exactly `pages`, if `out` is missing or was written by this tool."""
+    """Replaces `out` with exactly `pages`, if `out` is missing or was written by this tool.
+
+    Every page path must stay inside `out`; this is checked before anything is deleted.
+    """
+    base = out.resolve()
+    for rel in pages:
+        if not (base / rel).resolve().is_relative_to(base) or Path(rel).is_absolute():
+            raise ValueError(f"page path {rel!r} is outside {out}; refusing to write")
     if out.exists():
         foreign = not out.is_dir() or (
             any(out.iterdir()) and not (out / GENERATED_MARKER).is_file()
