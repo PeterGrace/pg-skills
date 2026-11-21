@@ -40,8 +40,9 @@ When you run `github-issue-to-pr`, after the gates and the commit, the skill:
 1. Picks a mode (below).
 2. Drafts the PR body into a scratch file. Its statements of fact are claims the audit
    checks.
-3. Dispatches a fresh subagent on a different model from the one that wrote the change.
-   The auditor gets the issue, the draft body, the repository path and the commit range.
+3. Dispatches a fresh subagent. The skill asks for a different model from the one that
+   wrote the change; the `issue-implementer` agent overrides this and uses Sonnet, its
+   own model. The auditor gets the issue, the draft body, the repository path and the commit range.
    It doesn't get the implementer's plan or summary.
 4. Acts on the verdicts, as described in [Read the verdicts](#read-the-verdicts).
 5. In ledger mode, commits `claims.json` in a commit of its own.
@@ -111,8 +112,10 @@ For a refuted claim, the question is whose it is:
 - **Elsewhere:** a problem in code the PR didn't touch. It stays recorded as refuted,
   with its `Fix:` step, and is listed in the PR body as pre-existing. It doesn't block.
 
-The table has a row per claim, refuted first, then not_enough_info, then supported.
-Here is the skill's own example of rows:
+The table lists refuted claims first, then not_enough_info, then supported. With more
+than about eight supported claims, the supported ones are collapsed into one line with
+a short citation each. Here is the skill's example of rows, without the claim ids, as
+in table-only mode:
 
 | Claim | Verdict | Evidence |
 |---|---|---|

@@ -29,15 +29,16 @@ Once there's a spec, I pick by size and shape:
 - **Independent items in the backlog** get burned down one at a time with
   `github-issue-burndown`.
 
-I explain burndown [in its own section](#how-i-burn-down-a-backlog) below. I only
-mention the claims audit that `github-issue-to-pr` runs before it opens a PR
-([github-issue-to-pr](/pg-skills/reference/skills/github-issue-to-pr/); the audit needs
-[claims-audit](/pg-skills/reference/dependencies/#claims-audit) and, for ledger
-mode only, [claims-mcp](/pg-skills/reference/dependencies/#claims-mcp); [why I audit](/pg-skills/explanation/why-audit-claims/)
-and [how to run it](/pg-skills/how-to/validate-a-change/)), the study
-guides ([study-guides](/pg-skills/reference/plugins/study-guides/)) and the
-supporting setup (the [knowledge catalog](/pg-skills/reference/dependencies/#telekin), the model policy and the
-machine rules) on this page.
+I explain burndown [in its own section](#how-i-burn-down-a-backlog) below. This
+page only touches on the claims audit that
+[`github-issue-to-pr`](/pg-skills/reference/skills/github-issue-to-pr/) runs before it
+opens a PR ([why I audit](/pg-skills/explanation/why-audit-claims/), [how to run
+it](/pg-skills/how-to/validate-a-change/); it needs
+[claims-audit](/pg-skills/reference/dependencies/#claims-audit) and, for ledger mode
+only, [claims-mcp](/pg-skills/reference/dependencies/#claims-mcp)), the
+[study guides](/pg-skills/reference/plugins/study-guides/) and the supporting setup (the
+[knowledge catalog](/pg-skills/reference/dependencies/#telekin), model policy and
+machine rules).
 
 ## What I read and what I approve
 
@@ -47,7 +48,8 @@ gates that every sub-issue has to pass.
 
 Accepting the sub-issue breakdown in plan mode is a step I don't use as much
 anymore. When I did, I usually just trusted it. `github-milestone-plan-to-issues` files one
-sub-issue per plan task, so there is no separate breakdown to review.
+sub-issue per plan task, so the breakdown it shows in plan mode follows the plan one to
+one, and there is little left to review.
 `github-issue-to-subissues` still runs inside it. On its own it's for an epic
 that has no checked-in plan.
 

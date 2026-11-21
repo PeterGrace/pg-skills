@@ -58,7 +58,9 @@ If the epic has no milestone branch, run only the final mode.
    section) and merge it with a merge commit.
 7. Run the final mode. If it validates and closing is authorized, it posts the comment
    and runs `gh issue close <epic> --reason completed`. See the
-   [final audit on epic #3](https://github.com/PeterGrace/pg-skills/issues/3#issuecomment-7063711827).
+   [final audit on epic #3](https://github.com/PeterGrace/pg-skills/issues/3#issuecomment-7063711827)
+   for the comment's shape. On that epic the merge had already closed the issue, because
+   of the trap below.
    If it doesn't validate, it posts the gaps and leaves the epic open.
 
 Follow-ups it finds are listed with proposed titles. It files them only if you say so, or said so earlier in the session.
@@ -71,15 +73,15 @@ It would close the epic at the merge, before the final audit has run, and the fi
 audit is what closes it.
 
 List the sub-issues and their PRs in a table instead, link the pre-merge audit
-comment, and say the PR doesn't close the epic. [PR #25](https://github.com/PeterGrace/pg-skills/pull/25)
-has no closing keyword. Its body says only that the epic stays open until the post-merge audit completes.
+comment, and say the PR doesn't close the epic.
+[PR #25](https://github.com/PeterGrace/pg-skills/pull/25) shows how easy the trap is to
+fall into. Its body said the PR doesn't close epic #3 itself, but wrote the number straight
+after the word "close", and GitHub read that as a closing keyword. The epic closed a second after the merge, before the final audit ran.
+Write "The epic stays open until the post-merge audit", and don't put the issue number
+after any form of close, fix or resolve.
 
 The sub-issue PRs go the other way. Their `Closes #N` does nothing on a non-default
 base, so the coordinator closes each sub-issue after the merge.
 
-## What the audit has found
-
-Gaps after every PR passed review: divergences nobody documented, and acceptance
-criteria with no test. On epic #3 the audit found no gaps, and listed two follow-ups it
-didn't file. On the milestone PR itself, review caught a real bug that the pre-merge audit hadn't: see
-[Why a review bot](/pg-skills/explanation/review-bot/).
+For what the audit has caught, see
+[Why a review bot](/pg-skills/explanation/review-bot/#the-close-out-audit-is-a-second-check).

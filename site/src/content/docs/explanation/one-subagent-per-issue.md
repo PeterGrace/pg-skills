@@ -45,7 +45,7 @@ carry on.
 
 ## Why a milestone branch and not main
 
-I gave three reasons in the interview:
+I have three reasons:
 
 - **`main` stays shippable.** Half a milestone never reaches `main` or a release, and
   I can still ship a hotfix while the milestone is open.
@@ -53,8 +53,8 @@ I gave three reasons in the interview:
   once, which catches problems that span PRs. On
   [PR #25](https://github.com/PeterGrace/pg-skills/pull/25) she found one that every
   sub-issue review had missed: the release skip could treat a large mixed change as
-  docs-only. It was fixed in [#27](https://github.com/PeterGrace/pg-skills/pull/27),
-  an extra sub-issue, before the merge.
+  docs-only. It was fixed before the merge in [#27](https://github.com/PeterGrace/pg-skills/pull/27),
+  the PR for an extra sub-issue, #26.
 - **It's easy to abandon.** If the milestone goes wrong, `main` is untouched.
 
 The cost is bookkeeping. A closing keyword in a PR into a non-default branch doesn't
@@ -68,8 +68,7 @@ The implementers run on Sonnet, and Opus only takes over on a recorded trigger. 
 this because of the usage limit, and to keep judgment at the top: planning, design
 and coordination are where the stronger model pays off. Opus implementers had become
 most of my weekly spend. In epic #3, no PR needed to escalate. That is an
-observation about one small epic, not my reason. The full model policy gets its own
-page later.
+observation about one small epic, not my reason.
 
 ## What it costs
 

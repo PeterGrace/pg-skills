@@ -24,12 +24,15 @@ work in several tasks, [execute an epic](/pg-skills/how-to/execute-an-epic/) ins
 
 - The `github-workflows` plugin
   ([install commands](/pg-skills/reference/plugins/github-workflows/)).
-- [gh](/pg-skills/reference/dependencies/#gh) and
+- [gh](/pg-skills/reference/dependencies/#gh),
+  [just](/pg-skills/reference/dependencies/#just) and
   [jq](/pg-skills/reference/dependencies/#jq). The skill's scripts parse GitHub API
   JSON with `jq`.
 - A [review bot](/pg-skills/reference/dependencies/#review-bot) that reviews the
   repository's PRs. The scripts are written for my bot, Brooke, so with another
   reviewer you will need to adapt them.
+- The [`claims-audit`](/pg-skills/reference/dependencies/#claims-audit) skill, which the
+  implementers' `github-issue-to-pr` runs for its audit step.
 - The `accepted` label, and issues that carry it.
 
 ## Prepare the queue
@@ -190,11 +193,12 @@ blocked issue.
   says the burndown stopped before coding because the issue needed decisions it
   couldn't make. A
   [decision comment](https://github.com/hypotheosis/okf_mcp/issues/759#issuecomment-7043295277)
-  followed, `burndown-blocked` was removed and
-  [PR #806](https://github.com/hypotheosis/okf_mcp/pull/806). The second
+  came next, then `burndown-blocked` was removed, and
+  [PR #806](https://github.com/hypotheosis/okf_mcp/pull/806) followed. The second
   [stop comment](https://github.com/hypotheosis/okf_mcp/issues/759#issuecomment-7045610519)
   says it stopped after three address rounds, with the PR left open and one review
-  point unresolved. At the time of writing the issue still carries `burndown-blocked` and PR
+  point unresolved. (The comment reports a cap of three address rounds; the current skill allows two
+  Sonnet and two Opus rounds.) At the time of writing the issue still carries `burndown-blocked` and PR
   #806 is open.
 
 The second stop shows what a good blocking comment holds: what the PR delivers, the

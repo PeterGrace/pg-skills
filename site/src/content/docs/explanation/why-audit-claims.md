@@ -1,6 +1,6 @@
 ---
 title: "Why audit claims: what gates miss"
-description: Why I have a fresh subagent on a different model audit every change's claims before the pull request opens, what that finds that passing gates don't, and when I keep a committed ledger.
+description: Why I have a fresh subagent audit every change's claims before the pull request opens, what that finds that passing gates don't, and when I keep a committed ledger.
 sidebar:
   order: 4
 ---
@@ -21,8 +21,10 @@ nobody wrote a test for.
 **The PR body overclaims.** The description says things the diff doesn't support, such
 as a file list that is wrong. Brooke has caught that kind of thing in reviews too.
 
-**Self-grading bias.** The implementer can't fairly grade its own work. So the audit is done by a fresh subagent, on a different model from the one that wrote the
-change.
+**Self-grading bias.** The implementer can't fairly grade its own work. So the audit is done by a fresh subagent that gets none of the implementer's reasoning.
+The skill asks for a different model. My `issue-implementer` agent overrides that and
+runs the auditor on Sonnet, its own model, to save tokens, so in my runs the
+independence comes from a fresh context, not a different model.
 
 The skill adds a fourth thing: when the project has a ledger, the audit also checks that
 the change didn't break anything the ledger records as working. That isn't my main
@@ -46,8 +48,8 @@ For each claim the auditor records a verdict:
 
 - **supported**, **refuted** or **not_enough_info**.
 
-A claim that is refuted and ours is one from the issue or the PR body, and the
-implementer has to fix it before the PR opens. Then the auditor looks again. A claim
+A claim that is refuted and ours is one from the issue or the PR body, or an existing ledger claim this diff broke,
+and the implementer has to fix it before the PR opens. Then the auditor looks again. A claim
 that is refuted in code the PR didn't touch is listed as pre-existing, and it doesn't
 block. `not_enough_info` never blocks, and the PR body says what would decide it.
 
@@ -77,8 +79,8 @@ The audit runs in one of two modes. The mode depends on whether the project has 
 
 For pull requests, claims-mcp is optional, and you need it only for ledger mode.
 
-I keep a committed ledger for projects that are "generally long-lived, spec-driven, or
-correctness-matters." Everything else stays in table-only mode.
+I keep a committed ledger for what I described as "Generally long-lived, spec-driven, or
+correctness-matters projects". Everything else stays in table-only mode.
 
 My advice, in my words: "Sometimes I delay the committed ledger until a later date,
 which spawns a raft of issues. It's better to start the ledger very early if you think
@@ -89,7 +91,7 @@ think the project may need one, start it at the beginning.
 For a real committed ledger, look at
 [`claims.json` in claims-mcp's own repository](https://github.com/hypotheosis/claims-mcp/blob/main/claims.json).
 It keeps retired claims and the verdict history as well as the current
-verdicts. Each release also attaches an audit report as PDFs, `audit.pdf` and `audit-full.pdf`, to its
+verdicts. Since v0.2.1, each release also attaches the audit report as PDFs, `audit.pdf` and `audit-full.pdf`, to its
 [GitHub release](https://github.com/hypotheosis/claims-mcp/releases/tag/v0.2.5).
 claims-mcp's own docs have a
 [browser viewer](https://hypotheosis.github.io/claims-mcp/viewer/) for any public

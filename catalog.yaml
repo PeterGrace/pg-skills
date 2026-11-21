@@ -57,7 +57,7 @@ dependencies:
     kind: skill
     description: "The skill that audits a change's claims with recorded evidence and supported, refuted or not-enough-info verdicts. The auditor subagent follows it."
     url: https://github.com/hypotheosis/claims-mcp/tree/main/skills/claims-audit
-    install: "Copy its folder into `~/.claude/skills/`: `cp -r skills/claims-audit ~/.claude/skills/`, from a checkout of claims-mcp."
+    install: "Copy its folder into your Claude Code skills directory, then restart Claude Code. See claims-mcp's install guide: https://hypotheosis.github.io/claims-mcp/guides/install.html#3-install-the-skill"
   - id: claims-mcp
     name: claims-mcp
     kind: mcp-server

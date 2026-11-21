@@ -6,13 +6,13 @@ sidebar:
 ---
 
 In this tutorial you take one small issue all the way to a merged pull request, with an
-AI agent doing the work and you doing the reviewing. It takes about half an hour. At the
+AI agent doing the work and you doing the reviewing. At the
 end you'll have a merged PR on a sandbox repository that you can delete afterwards.
 
 You'll use two skills: `github-issue-to-pr`, which turns an issue into a PR, and
 `github-address-pr-review`, which answers a review. This is the "curate issue by issue"
-way of working that [I describe here](/pg-skills/explanation/how-i-work/), and the
-smallest piece of my workflow.
+way of working described in [How I work](/pg-skills/explanation/how-i-work/), and the
+smallest piece of that workflow.
 
 ## What you need
 
@@ -22,6 +22,10 @@ smallest piece of my workflow.
   `gh auth status`.
 - [`just`](/pg-skills/reference/dependencies/#just), a command runner. The skills run the
   project's `just fmt` and `just test`.
+- The [`claims-audit`](/pg-skills/reference/dependencies/#claims-audit) skill, which
+  `github-issue-to-pr` needs for its audit step. Install it into your Claude Code skills
+  directory by following claims-mcp's
+  [install guide](https://hypotheosis.github.io/claims-mcp/guides/install.html#3-install-the-skill), then restart Claude Code.
 - Python 3, for the sandbox project below.
 
 ## 1. Install the plugin
@@ -110,20 +114,18 @@ Here is what you should see. The skill is a push-through workflow, so it doesn't
 to ask you unless something fails.
 
 1. Because your session is the top-level one, it hands the work to an `issue-implementer`
-   subagent in a worktree of its own, and relays the report. The skill relays that agent's report when it
-   finishes.
+   subagent in a worktree of its own, and relays the report.
 2. The agent reads the issue, creates a branch named `<prefix>-issue-1-<slug>`, where the
    prefix (`fix`, `feat` or `issue`) depends on the issue's labels and the slug comes from its title, and makes the change.
 3. It runs `just fmt` and `just test`. It skips `cargo clippy` because the project has no
-   `Cargo.toml`, and says so.
-4. A second, fresh subagent audits the claims in the PR description. Your repository has
-   no `claims.json`, so the audit runs in table-only mode and nothing is recorded; the
-   results go into the PR body. The audit follows the
-   [`claims-audit`](/pg-skills/reference/dependencies/#claims-audit) skill, which this
-   plugin doesn't ship. If your agent can't find it, it may report the audit as skipped,
-   and the rest of the tutorial still works.
-5. It commits, pushes, opens a PR whose body includes `Closes #1`, and comments the PR
-   link on the issue.
+   `Cargo.toml`, and says so. Then it commits.
+4. A second, fresh subagent audits the issue's requirements and the draft PR description
+   against the commit. Your repository has no `claims.json`, so the audit runs in
+   table-only mode and nothing is recorded; the results go into the PR body. The audit
+   follows the [`claims-audit`](/pg-skills/reference/dependencies/#claims-audit) skill,
+   which this plugin doesn't ship.
+5. It pushes, opens a PR whose body includes `Closes #1`, and comments the PR link on
+   the issue.
 
 When it finishes you have a PR number. Open it with `gh pr view 2 --web` (use your number)
 and look at the Summary, the Validation section and the Claims table. To read that
@@ -131,7 +133,7 @@ table, see [Validate a change](/pg-skills/how-to/validate-a-change/#read-the-ver
 
 ## 5. Review the PR
 
-I use a review bot, Brooke, for this step. You probably don't have one, so you'll be the
+The author uses a review bot, Brooke, for this step. You probably don't have one, so you'll be the
 reviewer. A bot is optional. To see what a bot review looks like, read
 [one of Brooke's](/pg-skills/explanation/review-bot/#read-three-real-reviews). You don't
 need one to finish this tutorial.
