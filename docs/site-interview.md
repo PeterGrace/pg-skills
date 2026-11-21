@@ -214,4 +214,43 @@ Brooke make two independent checks on the description before Peter looks at it.
 
 ## 5. Study guides
 
+### What do I use study guides for?
+
+**Answer:** learning a codebase, talking about it knowledgeably, and onboarding
+others.
+
+**Notes:** the flashcards weren't chosen. The skill writes them, but Peter doesn't
+mention studying them, so the site shouldn't present them as central.
+
+### Why generate, fact-check and reconcile instead of trusting the first draft?
+
+**Answer:** all four reasons:
+- **Hallucinations:** generated docs confidently describe code that doesn't exist or
+  works differently.
+- **Circular reasoning:** a guide that cites itself or other docs instead of the code
+  looks right but isn't grounded.
+- **Overconfidence:** guesses get stated as facts. The reconcile step reframes them.
+- **Experience:** Peter has been burned by unchecked output before.
+
+### What burned me?
+
+**Answer:** "I had a software project that confidently claimed a feature was
+implemented and it was not implemented, and was only found when I used
+claims-mcp/claims-audit to find it."
+
+**Notes:** this is the origin story for both checking loops:
+- fact-checking generated docs (this area);
+- auditing claims (area 4).
+
+The site's explanation pages should tell it once, in "Why audit claims", and link to
+it from "Why I fact-check generated docs". Name no private project.
+
+### How do I finish a guide that has deferred findings?
+
+**Answer:** it depends on the situation. Peter either uses the guide as it is, with
+the deferred items still flagged, or resolves them, now or later.
+
+**Notes:** deferred findings stay marked in the guide, so the guide is usable before
+every finding is resolved.
+
 ## 6. The supporting setup
