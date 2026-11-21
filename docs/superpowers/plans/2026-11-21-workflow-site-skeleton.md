@@ -915,7 +915,8 @@ site-build: site-gen
 
 - [ ] **Step 9: Build it**
 
-Run: `just site-build 2>&1 | tail -15`
+Run: `bash -o pipefail -c 'just site-build 2>&1 | tail -15'`
+The command must exit 0. `pipefail` makes a failed build fail the command, where a bare `| tail` would report `tail`'s success.
 Expected: `wrote 24 reference pages`, then Astro's build log reporting the pages it built (the 24 reference pages, the home page and a 404 page), the links validator reporting `All internal links are valid.`, and no errors.
 
 - [ ] **Step 10: Look at it**
@@ -1125,7 +1126,8 @@ In `catalog.yaml`, bump `skill-authoring`'s `version` from `0.1.1` to `0.1.2`.
 
 - [ ] **Step 3: Regenerate and check**
 
-Run: `just generate && just check && just site-build 2>&1 | tail -3`
+Run: `just generate && just check && bash -o pipefail -c 'just site-build 2>&1 | tail -3'`
+The command must exit 0 (see Task 5 Step 9 on `pipefail`).
 Expected: `ok` from validation, `OK` from the tests, and a site build with valid links.
 
 - [ ] **Step 4: Commit**
@@ -1146,7 +1148,10 @@ the coordinator only starts those once this task has merged, so they can't be pa
 
 - [ ] **Step 1: Run the gates on the integration branch**
 
-Run: `just check && just site-build 2>&1 | tail -5`
+Run: `rm -rf site/dist && just check && bash -o pipefail -c 'just site-build 2>&1 | tail -5'`
+The command must exit 0. Removing `site/dist` first means Step 2 can only see files this
+build wrote, and `pipefail` makes a failed build fail the command rather than reporting
+`tail`'s success.
 Expected: tests `OK` (33), `wrote 24 reference pages`, and a site build reporting
 that every internal link is valid.
 
