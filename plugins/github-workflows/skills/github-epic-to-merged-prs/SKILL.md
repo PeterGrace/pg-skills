@@ -217,6 +217,13 @@ a run's tokens.
    - Read only the fields you need: `--jq` on API calls, `tail` on logs,
      review comments as `path:line body`.
    - Batch catalog updates into one changeset per checkpoint, not one per PR.
+5. **Compaction.** The `github-workflows` plugin's `PreCompact` hook prints this state
+   file into every compaction, manual or automatic, so the summary keeps it. For sessions
+   that run coordinators, set `autoCompactWindow` to about 300000 (user settings, or
+   `CLAUDE_CODE_AUTO_COMPACT_WINDOW=300000 claude` for one session) so auto-compact fires
+   long before the 1M window and the run can carry on unattended. Much below 200000
+   compacts too often to pay off, and the setting applies to every session where it is
+   set. The checkpoints above still compact at clean points; the window is the ceiling.
 
 ## The agent brief
 
