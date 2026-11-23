@@ -111,6 +111,13 @@ class PreserveCoordinatorStateTest(unittest.TestCase):
         self.assertIn("A" * 3000, out)
         self.assertNotIn("A" * 3001, out)
 
+    def test_total_output_is_capped_even_with_long_paths(self) -> None:
+        for i in range(3):
+            self.state_dir().joinpath(f"{i}-" + "n" * 200 + ".md").write_text("B" * 100_000)
+        out = self.run_hook(self.repo)
+        self.assertEqual(out.returncode, 0)
+        self.assertLessEqual(len(out.stdout.encode()), 9500)
+
 
 if __name__ == "__main__":
     unittest.main()

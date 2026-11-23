@@ -6,10 +6,11 @@
 # script's stdout to the compaction instructions, so the summary keeps that state.
 #
 # Never blocks the compaction: always exits 0, and prints nothing outside a repo, with no
-# git, or with no state files. Output is capped at MAX_FILES files of MAX_BYTES bytes each, which keeps it under the 10,000 characters Claude Code allows a hook.
+# git, or with no state files. Output is capped at MAX_FILES files of MAX_BYTES bytes each, and at MAX_TOTAL bytes overall, under the 10,000 characters Claude Code allows a hook.
 
 MAX_FILES=3
 MAX_BYTES=3000
+MAX_TOTAL=9500   # hard cap on all output; Claude Code allows a hook 10,000 characters
 
 main() {
     local input cwd common dir f
@@ -41,5 +42,5 @@ main() {
     done
 }
 
-main 2>/dev/null
+main 2>/dev/null | head -c "$MAX_TOTAL"
 exit 0
