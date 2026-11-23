@@ -39,6 +39,28 @@ one and what to change to adapt it.
 | `skill-authoring` | How to add or change a skill in this repository. |
 | `usage-analysis` | Work out where Claude Code token usage went, from local transcripts, and what to change. |
 
+### Compacting long coordinator sessions (`github-workflows`)
+
+Coordinator sessions (`github-epic-to-merged-prs`, `github-issue-burndown`) grow large, and
+every turn re-reads the whole context. Two pieces help:
+
+- **A `PreCompact` hook ships with the plugin** (`hooks/hooks.json`). It registers when the
+  plugin is enabled (check `/hooks`). Before any compaction, manual or automatic, it prints
+  the coordinator state files under `$(git rev-parse --git-common-dir)/coordinator/` (the
+  newest three, 3 KB each, to stay under the 10,000 characters Claude Code allows a hook) so the summary keeps agent ids, PRs, review rounds and next
+  actions. Outside a repo, or with no state file, it prints nothing. It never blocks a
+  compaction. A hook can feed a compaction but can't start one.
+- **Set `autoCompactWindow` to about 300000** so auto-compact fires well before the 1M
+  window, in user settings (`~/.claude/settings.json`: `"autoCompactWindow": 300000`) or per
+  session with `CLAUDE_CODE_AUTO_COMPACT_WINDOW=300000 claude`. Each compaction is itself a
+  call over the whole context, so much below 200000 compacts too often to pay off. The
+  setting applies to every session where it is set, not only coordinators.
+
+The plugin does not ship `autoCompactWindow` itself: Claude Code's docs
+describe no plugin `settings.json` key for it (checked 2026-11-23), so it has to be set by
+you. The setting takes a token count of at least 100000, and the environment variable
+overrides the setting.
+
 The examples below install `skill-authoring`; substitute any plugin name.
 
 | Client | How |
