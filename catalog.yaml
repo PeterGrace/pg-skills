@@ -97,7 +97,7 @@ plugins:
 
   - name: github-workflows
     description: "Issue-to-merged-PR workflows on GitHub with the gh CLI: planning features and milestones into issues, grooming and splitting issues, implementing them in worktrees with subagents, answering review-bot feedback, burning down a backlog and closing out epics. Ships the issue-implementer subagent."
-    version: 0.1.2
+    version: 0.1.3
     category: Developer Tools
     keywords: [github, gh, issues, pull-requests, subagents, code-review]
     requires:

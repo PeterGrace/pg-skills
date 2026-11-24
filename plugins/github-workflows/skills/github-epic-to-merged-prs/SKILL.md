@@ -82,10 +82,41 @@ Repeat until every sub-issue is merged into the milestone branch. Below,
    sub-issue looks. In the week to 2026-11-21, 58 of 117 implementers ran on
    Opus at about 4× the cost, most with no stated reason. See **Escalating
    to Opus**.
-4. **Watch the review** with a background shell, never a foreground sleep:
-   ```bash
-   until [ "$(gh api repos/O/R/pulls/P/reviews --jq '[.[]|select(.user.login|startswith("REVIEWER"))]|length')" != "0" ]; do sleep 60; done; echo "reviewed P"
-   ```
+4. **Watch the review** in a background shell (`run_in_background`), never a
+   foreground sleep. Use the first of these that exists, and write your own
+   loop only when none does:
+   1. **The repo's watcher.** If the repo ships agent tooling (okf_mcp:
+      `tools/agentic/watch-review.sh <P>`), use it, and act on its exit code
+      (re-trigger, stale branch, round cap, timeout). Don't write a loop to
+      do its job: these repos have a hook that refuses one. Their other
+      scripts work the same way: `gate.sh` for gates, `merge-reviewed.sh`
+      for merges.
+   2. **This plugin's watcher**, for a Brooke review:
+      `${CLAUDE_SKILL_DIR}/../github-issue-burndown/scripts/wait-brooke.sh O/R P`
+      (add `--request` after a push). It waits for a review on the current
+      head, re-triggers on its own, and exits `NO_REVIEW` or `STALE` instead
+      of waiting forever.
+   3. **Your own loop, as a last resort.** Only when the repo has no watcher
+      and the reviewer isn't Brooke. Give it a deadline and make it say so
+      when the deadline passes:
+      ```bash
+      HEAD_SHA=$(gh api repos/O/R/pulls/P --jq .head.sha) && [ -n "$HEAD_SHA" ] \
+        || { echo "ERROR could not read the head of P"; exit 1; }
+      end=$(( $(date +%s) + 600 ))
+      until [ -n "$(gh api --paginate repos/O/R/pulls/P/reviews --jq ".[]|select((.user.login|startswith(\"REVIEWER\")) and .commit_id==\"$HEAD_SHA\")|.id")" ]; do
+        [ "$(date +%s)" -ge "$end" ] && { echo "NO_REVIEW P after 10 min"; exit 2; }
+        sleep 60
+      done; echo "reviewed P"
+      ```
+      Match the current head's SHA, not any review: an earlier round's
+      review would end the wait at once. Read every page (`--paginate`):
+      GitHub returns 30 reviews per page, so on a long-running PR the
+      current head's review can be on a later page. The `--jq` filter runs
+      once per page and prints one id per match, so test whether it printed
+      anything. Don't count per page, and don't use `--slurp`, which `gh`
+      refuses alongside `--jq`. When it exits `NO_REVIEW`, go to
+      step 5 straight away. Your next wake-up is the watcher exiting, so a
+      watcher without a deadline can leave the whole run waiting for hours.
 5. **If no review arrives,** first read the reviewer's *issue comments* on the
    PR. Bots often explain a skip there, for example "out of date with main".
    - If the branch is stale, tell the PR's agent to `git merge origin/<M>`
@@ -273,7 +304,9 @@ to run `github-address-pr-review` once <reviewer> has reviewed.
 | Treating "no review" as a lost webhook | Read the bot's issue comments: a stale branch is the usual cause. |
 | Agents sharing a log directory and reporting each other's counts | Keep logs per worktree, and take counts from the agent's own log. |
 | An agent's `pkill -f <binary>` killing other agents' test servers | Kill by PID only. Put this in every brief. |
-| Waiting with `until ! pgrep -f "just lint"` | That matches every session's runs, so it can wait forever. Wait for your own job's exit or its output file. |
+| Waiting with `until ! pgrep -f "just lint"` | That matches every session's runs, so it can wait forever. Run your own job in the background and wait for its exit notification. |
+| A hand-written review watcher with no deadline (okf_mcp PR #1008, 2026-11-24) | The bot ignored a re-request and the loop waited about 3 hours, because nothing else wakes a coordinator. Use the repo's watcher, then `wait-brooke.sh`, and only then your own loop, with a deadline (step 4). |
+| Writing your own loop for what a repo script does (`gate.sh`, `watch-review.sh`, `merge-reviewed.sh`) | The scripts carry the timeouts, locks and re-triggers the loop lacks. If the repo has them, use them; write a loop only when it has none. |
 | A CI watcher that waits for a fixed number of check runs | Older branches lack jobs added to `main` since, so it waits forever. Wait until runs appear, allow a grace period, then require none pending. |
 | A review watcher that counts only stale notices posted after it started | It misses a notice already posted. Match a notice that names the PR's current head SHA, whenever it was posted. |
 | A CI watcher that ignores merge conflicts | Each merge to `main` can conflict with the open PRs. Check `mergeable` first, and report `CONFLICTING` instead of waiting on CI. Check it again once CI finishes, waiting out `UNKNOWN` (GitHub recomputes it after `main` moves). After every merge, re-check the other open PRs. |

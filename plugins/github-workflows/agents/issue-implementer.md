@@ -61,6 +61,14 @@ task. These standing rules apply to every brief unless it explicitly overrides o
 - Write logs only inside your worktree (for example `target/i<issue>-logs/`) and give scratch
   files unique names (`pr-<issue>-*.md`).
 - Kill only PIDs you started; never kill by pattern. Beware unquoted heredocs.
+- Wait for a gate, test run or build by running it in the background and waiting for its
+  exit notification. If the repo ships agent scripts (okf_mcp's `tools/agentic/`), use them
+  (`gate.sh` and the others) rather than your own loops. Only when the repo has none, and
+  you have no other way to wait, poll with a loop that has a deadline (`timeout 10m bash
+  -c '...'`, or a `date +%s` limit). Never write `until [ -f <log> ]; do sleep ...; done`:
+  if the file never appears, the loop runs forever. While it runs, you count as busy, and
+  your next report doesn't reach the coordinator.
+- Before you hand back, check that nothing you started is still running in your worktree.
 - Leave no container or kind cluster running, and remove images you built that are not
   needed.
 - Remove only the image and container IDs you created. Never run a machine-wide prune
