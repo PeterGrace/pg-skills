@@ -19,7 +19,7 @@ Push-through workflow: read an issue on GitHub, implement a fix, validate it, pu
 - **Avoid shell commands in the parent whenever you can.** Let the implementer read the issue, run `gh`, `git` and the gates. If you need to look at code, use Read and Grep, not `cat` or `grep` in Bash. If you need to check the PR afterwards, one `gh pr view` is fine. Only reach for Bash when no other tool can do the job and the work can't wait for the subagent.
 - **Relay its report** to the user: the PR URL, gate results, claims-audit counts, and anything it flagged. Keep the agent's ID, because you message it later with SendMessage to run `github-address-pr-review` once the PR has been reviewed.
 - **Clean the worktree when the PR is done.** Once the PR has merged (or is abandoned) and nothing is still running there, delete the build output before the worktree goes. This applies to a worktree you named and to one `isolation: "worktree"` created: the harness keeps a worktree that has changes, so it isn't cleaned up for you.
-  - If the repo has a script for it, use it; okf_mcp's is `tools/agentic/remove-worktree.sh <path> --branch`.
+  - If the repo ships a script for it, use it, after checking the file exists; okf_mcp's is `tools/agentic/remove-worktree.sh <path> --branch` (add `--base origin/<branch>` when the PR merged into a branch other than `main`).
   - Otherwise, in a Rust repo, run `cargo clean` in the worktree (bounded, for example `timeout 10m cargo clean`), then `git worktree remove`.
   - Why: `build-dir` in `~/.cargo/config.toml` puts each worktree's build in its own directory under `~/.cache/cargo-build/`, which `git worktree remove` leaves behind (30-47 GiB per worktree on okf_mcp). The implementer doesn't clean; its config leaves that to you.
 
