@@ -103,13 +103,18 @@ Repeat until every sub-issue is merged into the milestone branch. Below,
       HEAD_SHA=$(gh api repos/O/R/pulls/P --jq .head.sha) && [ -n "$HEAD_SHA" ] \
         || { echo "ERROR could not read the head of P"; exit 1; }
       end=$(( $(date +%s) + 600 ))
-      until [ "$(gh api repos/O/R/pulls/P/reviews --jq "[.[]|select((.user.login|startswith(\"REVIEWER\")) and .commit_id==\"$HEAD_SHA\")]|length")" != "0" ]; do
+      until [ -n "$(gh api --paginate repos/O/R/pulls/P/reviews --jq ".[]|select((.user.login|startswith(\"REVIEWER\")) and .commit_id==\"$HEAD_SHA\")|.id")" ]; do
         [ "$(date +%s)" -ge "$end" ] && { echo "NO_REVIEW P after 10 min"; exit 2; }
         sleep 60
       done; echo "reviewed P"
       ```
       Match the current head's SHA, not any review: an earlier round's
-      review would end the wait at once. When it exits `NO_REVIEW`, go to
+      review would end the wait at once. Read every page (`--paginate`):
+      GitHub returns 30 reviews per page, so on a long-running PR the
+      current head's review can be on a later page. The `--jq` filter runs
+      once per page and prints one id per match, so test whether it printed
+      anything. Don't count per page, and don't use `--slurp`, which `gh`
+      refuses alongside `--jq`. When it exits `NO_REVIEW`, go to
       step 5 straight away. Your next wake-up is the watcher exiting, so a
       watcher without a deadline can leave the whole run waiting for hours.
 5. **If no review arrives,** first read the reviewer's *issue comments* on the
