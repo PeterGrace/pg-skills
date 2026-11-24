@@ -23,7 +23,9 @@ its gates, quirks and Brooke's behaviour there.
 **REQUIRED SUB-SKILLS** (the agent runs them, not you): `github-issue-to-pr`,
 `github-address-pr-review`.
 
-Scripts live in this skill's `scripts/` directory, `${CLAUDE_SKILL_DIR}/scripts` (call it `$S`). Run every
+Scripts live in this skill's `scripts/` directory, `${CLAUDE_SKILL_DIR}/scripts` (call it `$S`). Take `$S`
+from the skill as loaded each time; never reuse a path with a version in it from notes or an
+earlier session. Run every
 waiting script with `run_in_background: true`, never a foreground sleep.
 
 | Script | Does |
@@ -293,7 +295,14 @@ context matters to the next one.
    any escalation trigger), the run's arguments
    and the follow-ups you've filed in
    `$(git rev-parse --git-common-dir)/coordinator/burndown-<label>.md`,
-   outside the tree. Update it at every state change.
+   outside the tree. Update it at every state change. Don't write expanded plugin paths
+   (`~/.claude/plugins/cache/<market>/<plugin>/<version>/...`) into it, or into
+   briefs and memory: a session keeps the plugin version it loaded, so after
+   an update or a compact a copied path runs old scripts, or none. Write
+   only the script's path inside the plugin (for example
+   `skills/github-issue-burndown/scripts/wait-brooke.sh`), and each time
+   take the directory from the skill as loaded, or from `installPath` in
+   `~/.claude/plugins/installed_plugins.json`.
 2. **Checkpoint after every issue,** once it has merged or gone Stuck and
    been cleaned up. Update the state file, then end that message with a
    line ready to paste:

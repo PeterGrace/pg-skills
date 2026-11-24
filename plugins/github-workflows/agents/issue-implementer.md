@@ -69,6 +69,9 @@ task. These standing rules apply to every brief unless it explicitly overrides o
   if the file never appears, the loop runs forever. While it runs, you count as busy, and
   your next report doesn't reach the coordinator.
 - Before you hand back, check that nothing you started is still running in your worktree.
+- Call plugin scripts by the path the skill you loaded gives them. Don't
+  copy a path containing a plugin version (`.../plugins/cache/<market>/<plugin>/<version>/`)
+  from your brief or notes: it may be an older version than the one installed.
 - Leave no container or kind cluster running, and remove images you built that are not
   needed.
 - Remove only the image and container IDs you created. Never run a machine-wide prune
