@@ -299,7 +299,10 @@ context matters to the next one.
    (`~/.claude/plugins/cache/<market>/<plugin>/<version>/...`) into it, or into
    briefs and memory: a session keeps the plugin version it loaded, so after
    an update or a compact a copied path runs old scripts, or none. Write
-   `${CLAUDE_SKILL_DIR}/...` and take the real path from the skill as loaded.
+   only the script's path inside the plugin (for example
+   `skills/github-issue-burndown/scripts/wait-brooke.sh`), and each time
+   take the directory from the skill as loaded, or from `installPath` in
+   `~/.claude/plugins/installed_plugins.json`.
 2. **Checkpoint after every issue,** once it has merged or gone Stuck and
    been cleaned up. Update the state file, then end that message with a
    line ready to paste:

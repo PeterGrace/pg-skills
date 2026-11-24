@@ -228,7 +228,10 @@ a run's tokens.
    (`~/.claude/plugins/cache/<market>/<plugin>/<version>/...`) into it, or into
    briefs and memory: a session keeps the plugin version it loaded, so after
    an update or a compact a copied path runs old scripts, or none. Write
-   `${CLAUDE_SKILL_DIR}/...` and take the real path from the skill as loaded.
+   only the script's path inside the plugin (for example
+   `skills/github-issue-burndown/scripts/wait-brooke.sh`), and each time
+   take the directory from the skill as loaded, or from `installPath` in
+   `~/.claude/plugins/installed_plugins.json`.
 2. **Checkpoint, then suggest a compact.** Update the state file at each of
    these points:
    - when planning or brainstorming ends, before the first agent starts;
@@ -310,7 +313,7 @@ to run `github-address-pr-review` once <reviewer> has reviewed.
 | An agent's `pkill -f <binary>` killing other agents' test servers | Kill by PID only. Put this in every brief. |
 | Waiting with `until ! pgrep -f "just lint"` | That matches every session's runs, so it can wait forever. Run your own job in the background and wait for its exit notification. |
 | A hand-written review watcher with no deadline (okf_mcp PR #1008, 2026-11-24) | The bot ignored a re-request and the loop waited about 3 hours, because nothing else wakes a coordinator. Use the repo's watcher, then `wait-brooke.sh`, and only then your own loop, with a deadline (step 4). |
-| Running a plugin script by a path copied into the state file (`.../github-workflows/0.1.0/...` after 0.1.3 was installed, okf_mcp epic #958) | The copy outlives the version the session follows: after an update it runs old scripts, and once old versions are pruned it fails mid-run. Store `${CLAUDE_SKILL_DIR}/...` and resolve it from the loaded skill. |
+| Running a plugin script by a path copied into the state file (`.../github-workflows/0.1.0/...` after 0.1.3 was installed, okf_mcp epic #958) | The copy outlives the version the session follows: after an update it runs old scripts, and once old versions are pruned it fails mid-run. Store the path inside the plugin and take the directory from the loaded skill, or `installPath` in `installed_plugins.json`, each time (step **Keeping your context small**). |
 | Writing your own loop for what a repo script does (`gate.sh`, `watch-review.sh`, `merge-reviewed.sh`) | The scripts carry the timeouts, locks and re-triggers the loop lacks. If the repo has them, use them; write a loop only when it has none. |
 | A CI watcher that waits for a fixed number of check runs | Older branches lack jobs added to `main` since, so it waits forever. Wait until runs appear, allow a grace period, then require none pending. |
 | A review watcher that counts only stale notices posted after it started | It misses a notice already posted. Match a notice that names the PR's current head SHA, whenever it was posted. |
