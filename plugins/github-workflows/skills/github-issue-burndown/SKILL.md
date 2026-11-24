@@ -203,7 +203,8 @@ Keep a per-issue record in your own notes: issue, PR, agent id, `round`
    to you too). If the agent's loops are still there, message it to stop
    them, and re-check. Run `git -C <worktree> status --porcelain` before
    `git worktree remove`, and never `--force` without looking. Use the repo's
-   own script if it has one (okf_mcp: `tools/agentic/remove-worktree.sh <path> --branch`).
+   own script if it ships one, after checking the file exists (okf_mcp:
+   `tools/agentic/remove-worktree.sh <path> --branch`).
    Otherwise, in a Rust repo, run `(cd .worktrees/<repo>-<N> && timeout 10m cargo clean)`
    first. `~/.cargo/config.toml`'s `build-dir` leaves 30-60 GiB per worktree
    that `git worktree remove` doesn't delete. Then `git worktree remove`,

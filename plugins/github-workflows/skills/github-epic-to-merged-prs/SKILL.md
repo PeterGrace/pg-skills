@@ -147,8 +147,11 @@ Repeat until every sub-issue is merged into the milestone branch. Below,
 9. **Clean up.** First delete the worktree's build output. Then remove the
    worktree, delete the local branch and fetch. Re-check which issues are now
    unblocked.
-   - If the repo has its own script for this, use it. okf_mcp has
-     `tools/agentic/remove-worktree.sh <path> --branch` (issue #549).
+   - If the repo ships its own script for this, use it, after checking the
+     file exists. okf_mcp's is `tools/agentic/remove-worktree.sh <path>
+     --branch --base origin/<M>` (issue #549). Without `--base origin/<M>`
+     it refuses to delete a branch that has merged into `<M>` but not yet
+     into `main`.
    - Otherwise, in a Rust repo (a `Cargo.toml` at the worktree root), run
      `cargo clean` in the worktree before `git worktree remove`:
      ```bash
