@@ -100,6 +100,8 @@ Repeat until every sub-issue is merged into the milestone branch. Below,
       and the reviewer isn't Brooke. Give it a deadline and make it say so
       when the deadline passes:
       ```bash
+      HEAD_SHA=$(gh api repos/O/R/pulls/P --jq .head.sha) && [ -n "$HEAD_SHA" ] \
+        || { echo "ERROR could not read the head of P"; exit 1; }
       end=$(( $(date +%s) + 600 ))
       until [ "$(gh api repos/O/R/pulls/P/reviews --jq "[.[]|select((.user.login|startswith(\"REVIEWER\")) and .commit_id==\"$HEAD_SHA\")]|length")" != "0" ]; do
         [ "$(date +%s)" -ge "$end" ] && { echo "NO_REVIEW P after 10 min"; exit 2; }
